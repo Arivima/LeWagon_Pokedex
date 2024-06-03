@@ -2,20 +2,23 @@
 PYTHON_VERSION := 3.10.6
 ENV_NAME := pokemon-env
 
-# .python-version already created
-# start_env:
-# 	pyenv virtualenv $(PYTHON_VERSION) $(ENV_NAME)
-# 	pyenv local $(ENV_NAME)
+
+create_type_dataset:
+	bash scripts/data_pokemon_to_type.sh
 
 install_dependencies:
 	pip install --upgrade pip
-	pip install -r https://gist.githubusercontent.com/krokrob/53ab953bbec16c96b9938fcaebf2b199/raw/9035bbf12922840905ef1fbbabc459dc565b79a3/minimal_requirements.txt
-	pip list
+	pip install -r requirements.txt
 
 # To do after cloning the project
 connect:
 	@printf $(BOLDCYAN)"Makefile: Connecting team git repositories\n"$(RESET)
 	./scripts/git_connect_repo.sh
+
+# .python-version already created
+# start_env:
+# 	pyenv virtualenv $(PYTHON_VERSION) $(ENV_NAME)
+# 	pyenv local $(ENV_NAME)
 
 
 .PHONY: all start_env connect

@@ -1,6 +1,8 @@
 # DATA
 raw_data/
+raw_data_type/
 
+notebooks/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

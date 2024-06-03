@@ -23,18 +23,18 @@ while IFS=, read -r Number Name Types Type1 Type2 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     # Copier les fichiers dans les dossiers de type appropriés
     for dataset in train test valid; do
         if [ -d "$original_dir/$dataset/$Name" ]; then
-            # Créer le dossier pour le Type1 s'il n'existe pas
-            mkdir -p "$new_dir/$dataset/$Type1"
-            # Copier les fichiers dans le dossier de Type1
-            cp "$original_dir/$dataset/$Name"/* "$new_dir/$dataset/$Type1/"
-
-            # Si le Pokémon a plus d'un type
-            if [ "$Types" == 2 ]; then
+            if [ "$Type2" == "flying" ] && [ "$Type1" == "normal" ]; then
                 # Créer le dossier pour le Type2 s'il n'existe pas
                 mkdir -p "$new_dir/$dataset/$Type2"
                 # Copier les fichiers dans le dossier de Type2
                 cp "$original_dir/$dataset/$Name"/* "$new_dir/$dataset/$Type2/"
+            else
+                # Créer le dossier pour le Type1 s'il n'existe pas
+                mkdir -p "$new_dir/$dataset/$Type1"
+                # Copier les fichiers dans le dossier de Type1
+                cp "$original_dir/$dataset/$Name"/* "$new_dir/$dataset/$Type1/"
             fi
+
         fi
     done
 done < "$csv_file"

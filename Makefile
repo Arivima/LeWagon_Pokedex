@@ -6,6 +6,10 @@ ENV_NAME := pokemon-env
 create_type_dataset:
 	bash scripts/data_pokemon_to_type.sh
 
+create_raw_data_all:
+	bash scripts/data_150_merged.sh
+	
+
 install_dependencies:
 	pip install --upgrade pip
 	pip install -r requirements.txt

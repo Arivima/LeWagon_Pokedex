@@ -4,14 +4,9 @@
 
 
 # Définir les chemins
-original_dir="raw_data"
-new_dir="raw_data_type"
+original_dir="all_data_name"
+new_dir="all_data_type"
 csv_file="scripts/FirstGenPokemon.csv"
-
-# Créer les nouveaux dossiers de type s'ils n'existent pas
-mkdir -p "$new_dir/train"
-mkdir -p "$new_dir/test"
-mkdir -p "$new_dir/valid"
 
 # Lire le fichier CSV
 while IFS=, read -r Number Name Types Type1 Type2 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _; do
@@ -21,22 +16,20 @@ while IFS=, read -r Number Name Types Type1 Type2 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     fi
 
     # Copier les fichiers dans les dossiers de type appropriés
-    for dataset in train test valid; do
-        if [ -d "$original_dir/$dataset/$Name" ]; then
-            if [ "$Type2" == "flying" ] && [ "$Type1" == "normal" ]; then
-                # Créer le dossier pour le Type2 s'il n'existe pas
-                mkdir -p "$new_dir/$dataset/$Type2"
-                # Copier les fichiers dans le dossier de Type2
-                cp "$original_dir/$dataset/$Name"/* "$new_dir/$dataset/$Type2/"
-            else
-                # Créer le dossier pour le Type1 s'il n'existe pas
-                mkdir -p "$new_dir/$dataset/$Type1"
-                # Copier les fichiers dans le dossier de Type1
-                cp "$original_dir/$dataset/$Name"/* "$new_dir/$dataset/$Type1/"
-            fi
-
+    if [ -d "$original_dir/$Name" ]; then
+        if [ "$Type2" == "flying" ] && [ "$Type1" == "normal" ]; then
+            # Créer le dossier pour le Type2 s'il n'existe pas
+            mkdir -p "$new_dir/$Type2"
+            # Copier les fichiers dans le dossier de Type2
+            cp "$original_dir/$Name"/* "$new_dir/$Type2/"
+        else
+            # Créer le dossier pour le Type1 s'il n'existe pas
+            mkdir -p "$new_dir/$Type1"
+            # Copier les fichiers dans le dossier de Type1
+            cp "$original_dir/$Name"/* "$new_dir/$Type1/"
         fi
-    done
+
+    fi
 done < "$csv_file"
 
 echo "Les images ont été copiées avec succès dans les dossiers de types appropriés."

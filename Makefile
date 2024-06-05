@@ -2,13 +2,15 @@
 PYTHON_VERSION := 3.10.6
 ENV_NAME := pokemon-env
 
+update_data_folder_structure:
+	bash scripts/data_150_merged.sh
 
-create_type_dataset:
+create_type_dataset: update_data_folder_structure
 	bash scripts/data_pokemon_to_type.sh
 
-install_dependencies:
-	pip install --upgrade pip
-	pip install -r requirements.txt
+# install_dependencies:
+# 	pip install --upgrade pip
+# 	pip install -r requirements.txt
 
 # To do after cloning the project
 connect:

@@ -11,3 +11,7 @@ opencv-python
 notebook
 tensorflow
 colorama
+
+# API
+fastapi         # API framework
+uvicorn         # web server

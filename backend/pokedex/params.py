@@ -21,5 +21,8 @@ LOCAL_REGISTRY_PATH = os.path.join(os.path.expanduser('~'), ".lewagon", "pokedex
 DATASET_NAME_PATH = os.path.join('..', 'all_data_name')
 DATASET_TYPE_PATH = os.path.join('..', 'all_data_type')
 
+LABELS_TYPE = os.environ.get("LABELS_TYPE")
+LABELS_NAME = os.environ.get("LABELS_NAME")
+
 # LOCAL_DATA_PATH = os.path.join(os.path.expanduser('~'), ".lewagon", "mlops", "data")
 # LOCAL_REGISTRY_PATH =  os.path.join(os.path.expanduser('~'), ".lewagon", "mlops", "training_outputs")

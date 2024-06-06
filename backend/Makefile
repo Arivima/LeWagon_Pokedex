@@ -68,3 +68,6 @@ run_all: run_preprocess run_train run_pred run_evaluate
 
 run_workflow:
 	PREFECT__LOGGING__LEVEL=${PREFECT_LOG_LEVEL} python -m pokedex.interface.workflow
+
+run_api:
+	uvicorn api.fast:app --reload

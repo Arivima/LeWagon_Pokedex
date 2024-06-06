@@ -9,5 +9,6 @@ seaborn
 scikit-learn
 opencv-python
 notebook
-tensorflow
+tensorflow==2.10.0
 colorama
+mlflow==2.1.1

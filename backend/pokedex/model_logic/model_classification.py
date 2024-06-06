@@ -8,6 +8,7 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropou
 from tensorflow.keras.callbacks import ReduceLROnPlateau
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.optimizers import SGD
+import inspect
 
 from colorama import Fore, Style
 from typing import Tuple
@@ -91,7 +92,6 @@ def compile_model(model: Model, learning_rate=0.01, momentum=0.9, nesterov=True)
     model.compile(loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"])
 
     print("✅ Model compiled")
-    # print(model.summary())
     return model
 
 def train_model(
@@ -112,37 +112,40 @@ def train_model(
     print(Fore.BLUE + "\nTraining model..." + Style.RESET_ALL)
 
     # Callbacks for learning rate adjustment
-    callback = ReduceLROnPlateau(
+    rlp = ReduceLROnPlateau(
         monitor=monitor,
         patience=patience,
         factor=0.2,
         min_lr=0.00001)
-    # callback = EarlyStopping( monitor=monitor, patience=patience, restore_best_weights=True, verbose=1)
+    es = EarlyStopping( monitor=monitor, patience=patience, restore_best_weights=True, verbose=1)
 
     # Data augmentation
-    datagen = ImageDataGenerator(
-        rotation_range=20,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        shear_range=0.2,
-        zoom_range=0.2,
-        horizontal_flip=True,
-        fill_mode='nearest'
-    )
-    print( 'X', 'y', type(X), type(y),  X.shape, y.shape)
+    # datagen = ImageDataGenerator(
+    #     rotation_range=20,
+    #     width_shift_range=0.2,
+    #     height_shift_range=0.2,
+    #     shear_range=0.2,
+    #     zoom_range=0.2,
+    #     horizontal_flip=True,
+    #     fill_mode='nearest'
+    # )
+
+    # X1 = datagen.flow(X, y, batch_size=64)
+    # print(type(X1))
 
     # Training the model
     history = model.fit(
-        datagen.flow(X, y, batch_size=64),
+        # datagen.flow(X, y, batch_size=64),
+        X, y,
         validation_data=validation_data,
         validation_split=validation_split,
         epochs=epochs,
         batch_size=batch_size,
-        callbacks=[callback],
+        callbacks=[es, rlp],
         verbose=verbose
     )
 
-    print(f"✅ Model trained on {len(X)} images with min val loss: {round(np.min(history.history[monitor]), 2)}")
+    print(f"✅ Model trained on {len(X)} images with max accuracy : {round(np.max(history.history['accuracy']), 2)}")
 
     return model, history
 

@@ -76,7 +76,11 @@ def save_model(context : str, model: keras.Model = None) -> None:
     return None
 
 
-def load_model(stage="Production", include_filename=False) -> keras.Model:
+def load_model(
+    stage : str = "Production",
+    include_filename : bool = False,
+    model_type : str = CLASSIFICATION_TYPE
+    ) -> keras.Model:
     """
     Return a saved model:
     - locally (latest one in alphabetical order)
@@ -89,10 +93,19 @@ def load_model(stage="Production", include_filename=False) -> keras.Model:
         print(Fore.BLUE + f"\nLoad latest model from local registry..." + Style.RESET_ALL)
 
         # Get the latest model version name by the timestamp on disk
-        local_model_directory = os.path.join(LOCAL_REGISTRY_PATH, "models")
-        local_model_paths = glob.glob(f"{local_model_directory}/{CLASSIFICATION_TYPE}*")
+        if stage == 'Production':
+            registry_path = PRODUCTION_REGISTRY_PATH
+        elif stage == 'Staging':
+            registry_path = LOCAL_REGISTRY_PATH
+        else:
+            print(f'ERROR : unknown stage {stage}')
+            return None
+
+        local_model_directory = os.path.join(registry_path, "models")
+        local_model_paths = glob.glob(f"{local_model_directory}/{model_type}*")
 
         if not local_model_paths:
+            print(f"No model {model_type} local disk")
             return None
 
         most_recent_model_path_on_disk = sorted(local_model_paths)[-1]
@@ -115,7 +128,7 @@ def load_model(stage="Production", include_filename=False) -> keras.Model:
         mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
         client = MlflowClient()
 
-        project_name = f'{MLFLOW_MODEL_NAME}_{CLASSIFICATION_TYPE}'
+        project_name = f'{MLFLOW_MODEL_NAME}_{model_type}'
 
         try:
             model_versions = client.get_latest_versions(name=project_name, stages=[stage])
@@ -365,7 +378,7 @@ def compare_vs_production():
                 pickle.dump(last_metrics, file)
 
             # Save model locally
-            model, model_filename = load_model(include_filename=True)
+            model, model_filename = load_model(stage='Staging', model_type=CLASSIFICATION_TYPE, include_filename=True)
             model_path = os.path.join(registry_path, "models", model_filename)
             print('Copying last run model to ', model_path)
             model.save(model_path)
@@ -387,7 +400,7 @@ def compare_vs_production():
             print('No model currently in production : Staged current model to production')
             mlflow_transition_model(current_stage="Staging", new_stage="Production")
         elif staging_model_metrics is None:
-            print('ERROR : No model currently in production ')
+            print('ERROR : No model currently in staging ')
         elif staging_model_metrics['best_accuracy'] > production_model_metrics['best_accuracy']:
             print('current model is better than production model : Staged current model to production')
             mlflow_transition_model(current_stage="Staging", new_stage="Production")

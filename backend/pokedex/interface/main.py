@@ -15,7 +15,7 @@ from pokedex.model_logic.registry import mlflow_transition_model, mlflow_run, lo
 from sklearn.model_selection import train_test_split
 
 from colorama import Fore, Style, init
-
+import json
 
 
 def preprocess(
@@ -64,8 +64,8 @@ def preprocess(
 
     # Encode target
     y_cat = encode_target(y)
-    print('X_processed', X_processed.shape, 'y_cat', y_cat.shape)
-
+    print('X_processed', X_processed.shape)
+    print('y_cat', y_cat.shape)
     # TODO refactor to save preprocessed data to root registry
 
     print("✅ preprocess() done \n")
@@ -147,6 +147,7 @@ def train(
         context="train",
         model=CLASSIFICATION_TYPE,
         nb_images=len(X_train),
+        img_size=X_train.shape[1:3]
         )
     # Save results on the hard drive using pokedex.model_logic.registry + MLFlow
     save_results(params=params, metrics=dict(best_accuracy=best_accuracy), context='train')
@@ -168,7 +169,6 @@ def evaluate(
         y_test,
         batch_size : int =32,
         verbose : bool = 1,
-        stage: str = "Production"
     ) -> float:
     '''
     Evaluate the performance of the latest production model on processed data
@@ -176,7 +176,7 @@ def evaluate(
     print(Fore.MAGENTA + "\n⭐️ Use case: evaluate" + Style.RESET_ALL)
 
     # load latest model
-    model = load_model(stage=stage)
+    model = load_model(stage="Production", model_type=CLASSIFICATION_TYPE)
     assert model is not None
 
     # evaluate model
@@ -185,7 +185,7 @@ def evaluate(
         X=X_test,
         y=y_test,
         batch_size=batch_size,
-        verbose = verbose,
+        verbose = verbose
         )
 
     # save results
@@ -193,6 +193,7 @@ def evaluate(
         context="evaluate", # Package behavior
         model=CLASSIFICATION_TYPE,
         nb_images=len(X_test),
+        img_size=X_test.shape[1:3]
     )
     save_results(params=params, metrics=metrics_dict, context='evaluate')
 
@@ -203,18 +204,48 @@ def evaluate(
 
 
 
-# def pred(X_pred: pd.DataFrame = None) -> np.ndarray:
-#     """
-#     Make a prediction using the latest trained model
-#     """
+def pred(model_type : str = '15') -> np.ndarray:
+    """
+    Make a prediction using the latest trained model
+    """
+    print("\n⭐️ Use case: predict")
+    # Fetch images to predict
+    images_path = os.path.join('..', 'all_prediction_images')
+    img_new_size = (128, 128)
+    images = load_images_from_folders(
+        images_path,
+        sample='all',
+        new_size=img_new_size
+        )
+    print('images.shape', images.shape)
 
-#     print("\n⭐️ Use case: predict")
+    # define features
+    X = np.stack(images['image'].values)
+    print('X', X.shape)
+    print("✅ images loaded and processed\n")
 
-#     # y_pred = np.ndarray()
+    # load model in production
+    model = load_model(stage='Production', model_type=model_type)
+    print("✅ model loaded\n")
 
-#     print("✅ pred() done \n")
-#     # return y_pred
-#     pass
+    # make prediction
+    y_pred = model.predict(X)
+
+    # decode prediction
+    label_decoder = LABELS_TYPE if (str(model_type) == '15') else LABELS_NAME
+    labels_type_dict  = json.loads(label_decoder)
+    predicted_index = np.argmax(y_pred, axis=1)
+    predicted_labels = [labels_type_dict[str(i)] for i in predicted_index]
+
+    # Get the confidence scores for each prediction
+    confidence_scores = np.max(y_pred, axis=1)
+
+    # Create a dictionary with predicted labels as keys and confidence scores as values
+    predicted_labels_confidence_dict = [[k, v] for k, v in zip(predicted_labels, confidence_scores)]
+
+    print(predicted_labels_confidence_dict)
+    print("✅ pred() done \n")
+    return predicted_labels
 
 
 

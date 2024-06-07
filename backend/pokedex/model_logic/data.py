@@ -58,7 +58,8 @@ def load_images_from_folders(
     # if sample is not 'all', randomly samples X to reduce the size of the df
     # if sample.isdigit() and int(sample) < len(df):
     #     print(sample)
-    df = sample_dataframe(df, int(sample))
+
+    df = sample_dataframe(df, 300)
 
     print(f"✅ Data loaded from {base_dir}")
     return df

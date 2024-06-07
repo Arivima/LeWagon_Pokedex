@@ -18,6 +18,7 @@ MLFLOW_MODEL_NAME = os.environ.get("MLFLOW_MODEL_NAME")
 ML_DIR= os.path.join(os.path.expanduser('~'), ".lewagon", "pokedex")
 LOCAL_DATA_PATH = os.path.join(os.path.expanduser('~'), ".lewagon", "pokedex", "data")
 LOCAL_REGISTRY_PATH = os.path.join(os.path.expanduser('~'), ".lewagon", "pokedex", "training_outputs")
+PRODUCTION_REGISTRY_PATH = os.path.join(os.getcwd(), 'pokedex', 'production_registry')
 
 DATASET_NAME_PATH = os.path.join('..', 'all_data_name')
 DATASET_TYPE_PATH = os.path.join('..', 'all_data_type')

@@ -11,6 +11,7 @@ from pokedex.model_logic.model_classification import initialize_model_15, initia
 from pokedex.model_logic.model_classification import compile_model, train_model, evaluate_model
 from pokedex.model_logic.plotting import plot_loss_accuracy
 from pokedex.model_logic.registry import load_model, save_model, save_results
+from pokedex.model_logic.registry import mlflow_transition_model, mlflow_run, load_latest_run, compare_vs_production
 from sklearn.model_selection import train_test_split
 
 from colorama import Fore, Style, init
@@ -18,8 +19,8 @@ from colorama import Fore, Style, init
 
 
 def preprocess(
-    classification_type : str = '15', # '15 types' or '150 pokemon'
-    sample :str = '50', #TODO set to all by default when debug done
+    classification_type : str = CLASSIFICATION_TYPE, # '15 types' or '150 pokemon'
+    sample :str = '300',
     img_new_size : tuple = (128, 128),
     ) -> tuple:
     """
@@ -27,6 +28,9 @@ def preprocess(
     - process the raw dataset
     - returns a tuple holding processed features and encoded target
     """
+    print(Fore.MAGENTA + "\n⭐️ Starting preprocessing" + Style.RESET_ALL)
+    print('classification_type', classification_type, 'sample', sample, 'img_new_size', img_new_size)
+
 
     # Load raw data
     if classification_type == '15':
@@ -45,12 +49,13 @@ def preprocess(
         raise ValueError("classification_type should be '15 types' or '150 pokemon'")
 
     # display_images(dataset) # debug
+    print('dataset.shape', dataset.shape)
 
     # define features and target
-    X = dataset[["image"]].to_numpy()
-    y = dataset[["label"]].to_numpy().ravel()
+    X = np.stack(dataset['image'].values)
+    # print('X', type(X), X.shape, X[0].shape)
+    y = dataset[["label"]].values
 
-    print('X', X.shape, 'y', y.shape)
 
     # Process features
     #TODO refactor from load_images_from_folders to preprocess_features
@@ -59,12 +64,14 @@ def preprocess(
 
     # Encode target
     y_cat = encode_target(y)
+    print('X_processed', X_processed.shape, 'y_cat', y_cat.shape)
 
     # TODO refactor to save preprocessed data to root registry
 
     print("✅ preprocess() done \n")
     return (X_processed, y_cat)
 
+@mlflow_run
 def train(
         X_y : tuple,
         classification_type : str = '15', # '15 types' or '150 pokemon'
@@ -86,6 +93,7 @@ def train(
 
     => Return accuracy as a float
     """
+    print(Fore.MAGENTA + "\n⭐️ Starting training " + Style.RESET_ALL)
 
     # load dataset    # TODO refactor to load preprocessed data from root registry
     X_processed, y_cat = X_y
@@ -94,15 +102,15 @@ def train(
     X_train, X_test, y_train, y_test = train_test_split(
         X_processed, y_cat, test_size=test_size, random_state=42)
 
+    print('train test split', X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+
     # Initialize model
-    model = load_model()
-    if model is None:
-        if classification_type == '15':
-            model = initialize_model_15(image_size=X_train.shape[1:])
-        elif classification_type == '150':
-            model = initialize_model_150(image_size=X_train.shape[1:])
-        else:
-            raise ValueError("classification_type should be '15 types' or '150 pokemon'")
+    if classification_type == '15':
+        model = initialize_model_15(image_size=X_train.shape[1:])
+    elif classification_type == '150':
+        model = initialize_model_150(image_size=X_train.shape[1:])
+    else:
+        raise ValueError("classification_type should be '15 types' or '150 pokemon'")
 
     # Compile model
     model = compile_model(
@@ -127,37 +135,34 @@ def train(
     )
     best_accuracy = np.max(history.history['accuracy'])
 
-    # plot_loss_accuracy(history)    #TODO delete when refactor
+    # print(Fore.PINK +"Hyperparamètres du modèle :" + Style.RESET_ALL)
+    # for key, value in model.get_config().items():
+    #     print(f"{key} : {value}")
+
+    total_parameters = sum(p.shape.num_elements() for layer in model.layers for p in layer.trainable_variables)
+    print(Fore.GREEN + "Total parameters:", "{:,}".format(total_parameters), Style.RESET_ALL)
 
     # save results and model
     params = dict(
         context="train",
         model=CLASSIFICATION_TYPE,
         nb_images=len(X_train),
-        learning_rate=learning_rate,
-        momentum=momentum,
-        nesterov=nesterov,
-        batch_size=batch_size,
-        monitor=monitor,
-        patience=patience,
-        epochs=epochs,
-        validation_data=validation_data, # overrides validation_split
-        validation_split=validation_split,
         )
     # Save results on the hard drive using pokedex.model_logic.registry + MLFlow
-    save_results(params=params, metrics=dict(best_accuracy=best_accuracy))
+    save_results(params=params, metrics=dict(best_accuracy=best_accuracy), context='train')
 
     # Save model weight on the hard drive + MLFlow
-    save_model(model=model)
+    save_model(model=model, context='train')
 
-    # # The latest model should be moved to staging
-    # if MODEL_TARGET == 'mlflow':
-    #     mlflow_transition_model(current_stage="None", new_stage="Staging")
+    if MODEL_TARGET == 'mlflow':
+        # The latest model should be moved to staging
+        mlflow_transition_model(current_stage="None", new_stage="Staging")
 
     print("✅ train() done \n")
     return best_accuracy, X_test, y_test
 
 
+@mlflow_run
 def evaluate(
         X_test,
         y_test,
@@ -188,11 +193,12 @@ def evaluate(
         context="evaluate", # Package behavior
         model=CLASSIFICATION_TYPE,
         nb_images=len(X_test),
-        batch_size=batch_size,
     )
-    save_results(params=params, metrics=metrics_dict)
+    save_results(params=params, metrics=metrics_dict, context='evaluate')
 
     print("✅ evaluate() done \n")
+    compare_vs_production()
+
     return metrics_dict["accuracy"]
 
 
@@ -219,21 +225,17 @@ def evaluate(
 #TODO re-read and refactor
 #TODO set up prefect + automatic production when better + differenciate 15 and 150 models
 #TODO set-up prediction
-#TODO
 
-# before push VM
-#TODO debug
-#TODO check local storing ok
-#TODO set up MLFlow + differenciate 15 and 150 models
-#TODO reset default sample to 'all'
 
 def main():
     # try :
-    print(Fore.BLUE + f"\nstart of main" + Style.RESET_ALL)
+    print(Fore.MAGENTA + "\n ⭐️ ⭐️ ⭐️ Starting Pokedex ⭐️ ⭐️ ⭐️ " + Style.RESET_ALL)
     # Here only place to define hyperparams
+
     if CLASSIFICATION_TYPE == '15':
         settings = dict(
             classification_type = CLASSIFICATION_TYPE, # '15 types' or '150 pokemon'
+            sampled_dataset = SAMPLED_DATASET,
             img_new_size = (128, 128),
             test_size=0.2,
             learning_rate=0.01,
@@ -249,6 +251,7 @@ def main():
     else :
         settings = dict(
             classification_type = CLASSIFICATION_TYPE, # '15 types' or '150 pokemon'
+            sampled_dataset = SAMPLED_DATASET,
             img_new_size = (128, 128),
             test_size=0.2,
             learning_rate=0.01,
@@ -268,6 +271,7 @@ def main():
 
     dataset_processed = preprocess(
         classification_type = settings['classification_type'],
+        sample = settings['sampled_dataset'],
         img_new_size = settings['img_new_size']
         )
 
@@ -285,16 +289,13 @@ def main():
         validation_split=settings['validation_split'],
         verbose=settings['verbose']
     )
-    print('best_accuracy', best_accuracy)
-
     accuracy = evaluate(
         X_test=X_test,
         y_test=y_test,
         batch_size = settings['batch_size'],
         verbose=settings['verbose']
     )
-    print('accuracy', accuracy)
-    print(Fore.BLUE + f"\end of main" + Style.RESET_ALL)
+    print(Fore.MAGENTA + "\n ⭐️ ⭐️ ⭐️ Closing Pokedex ⭐️ ⭐️ ⭐️ " + Style.RESET_ALL)
 
 
 # TODO

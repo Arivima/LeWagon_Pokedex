@@ -8,8 +8,9 @@ start_env:
 	pyenv local $(ENV_NAME)
 
 
-
+ENV_FILE := .env
 .DEFAULT_GOAL := default
+
 #################### PACKAGE ACTIONS ###################
 ML_DIR=~/.lewagon/pokedex
 
@@ -41,13 +42,22 @@ run:
 	direnv reload
 	direnv exec . python pokedex/interface/main.py
 
+reset_classification_env:
+	@echo "Modifying environment variable in $(ENV_FILE)..."
+	@if grep -q "CLASSIFICATION_TYPE=" $(ENV_FILE); then \
+		sed -i 's/CLASSIFICATION_TYPE=.*/CLASSIFICATION_TYPE=$(new_value)/' $(ENV_FILE); \
+	else \
+		echo "CLASSIFICATION_TYPE=$(new_value)" >> $(ENV_FILE); \
+	fi
+	@echo "Modification complete."
+
 run_15:
-	echo "export CLASSIFICATION_TYPE=15" > .env;
-	make run
+	$(MAKE) reset_classification_env new_value=15
+	$(MAKE) run
 
 run_150:
-	echo "export CLASSIFICATION_TYPE=150" > .env;
-	make run
+	$(MAKE) reset_classification_env new_value=150
+	$(MAKE) run
 
 
 
@@ -68,3 +78,6 @@ run_all: run_preprocess run_train run_pred run_evaluate
 
 run_workflow:
 	PREFECT__LOGGING__LEVEL=${PREFECT_LOG_LEVEL} python -m pokedex.interface.workflow
+
+run_api:
+	uvicorn api.fast:app --reload

@@ -9,5 +9,10 @@ seaborn
 scikit-learn
 opencv-python
 notebook
-tensorflow
+tensorflow==2.10.0
 colorama
+
+# API
+fastapi         # API framework
+uvicorn         # web server
+mlflow==2.1.1

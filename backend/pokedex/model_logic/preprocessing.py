@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import cv2
 
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras.utils import to_categorical
 
 
@@ -17,11 +17,8 @@ def proc_to_bw_resized(
     - Resize image to new_shape
     - Optionally convert to grayscale
     """
-    # Convert RGB to BGR
-    img_cv2 = img[...,::-1]
-
     # Resize
-    resized_img = cv2.resize(img_cv2, dsize=new_shape)
+    resized_img = cv2.resize(img, dsize=new_shape)
 
     # Optionally converts to grayscale
     if gray:
@@ -37,6 +34,8 @@ def preprocess_features(
     gray: bool = True
     ) -> pd.Series:
     ''' preprocess images '''
+    print('  ➡️ start preprocess_features')
+    print('X.shape', X.shape, type(X), 'new_shape', new_shape, 'gray', gray)
 
     X_processed = proc_to_bw_resized(X)
 
@@ -45,8 +44,8 @@ def preprocess_features(
 def encode_target(y : pd.Series) -> pd.Series:
     ''' Encodes the target '''
 
-    label_encoder = LabelEncoder()
+    label_encoder = OneHotEncoder(sparse_output=False)
     y_encoded = label_encoder.fit_transform(y)
-    y_categorical = to_categorical(y_encoded)
 
-    return y_categorical
+    print('✅ Target encoded')
+    return y_encoded

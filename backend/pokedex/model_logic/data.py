@@ -23,7 +23,7 @@ def sample_dataframe(df, num_samples):
 
 def load_images_from_folders(
     base_dir : str,
-    sample : str = 'all',
+    sample : str = '300',
     new_size : tuple = (128,128),
     ) -> pd.DataFrame:
     """
@@ -56,8 +56,9 @@ def load_images_from_folders(
     df['label'] = y
 
     # if sample is not 'all', randomly samples X to reduce the size of the df
-    if sample.isdigit() and int(sample) < len(df):
-        df = sample_dataframe(df, int(sample))
+    # if sample.isdigit() and int(sample) < len(df):
+    #     print(sample)
+    df = sample_dataframe(df, int(sample))
 
     print(f"✅ Data loaded from {base_dir}")
     return df

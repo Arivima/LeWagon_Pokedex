@@ -5,7 +5,9 @@ import pandas as pd
 import numpy as np
 
 from pokedex.params import *
-from pokedex.model_logic.data import load_images_from_folders, display_images
+from pokedex.model_logic.data import (load_images_from_folders,
+                                      load_images_from_bucket,
+                                      display_images)
 from pokedex.model_logic.preprocessing import preprocess_features, encode_target
 from pokedex.model_logic.model_classification import initialize_model_15, initialize_model_150
 from pokedex.model_logic.model_classification import compile_model, train_model, evaluate_model

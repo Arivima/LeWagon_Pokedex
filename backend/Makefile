@@ -17,13 +17,20 @@ ENV_FILE := .env
 ML_DIR=~/.lewagon/pokedex
 
 reinstall_package:
+	@pip install --upgrade pip
 	@pip uninstall -y pokedex || :
 	@pip install -e .
 
-additional_packages:
-	sudo apt-get update && apt-get install libgl1
+# additional_packages:
+# 	sudo apt-get update && apt-get install libgl1
 # rm -rf ${ML_DIR}
+
+create_dataset_type :
+	@echo "Creating dataset_type..."
+	bash ../scripts/data_pokemon_to_type.sh
+
 reset_local_files:
+	@echo "resetting local staging registries..."
 	rm -rf ${ML_DIR}
 	mkdir -p ~/.lewagon/pokedex/data/
 	mkdir ~/.lewagon/pokedex/data/raw
@@ -37,11 +44,16 @@ reset_local_files:
 	mkdir ~/.lewagon/pokedex/gan/output_images
 
 set_up_env:
+	@echo "Copying .env from .env.sample ..."
+	@if [ -f .env ]; then \
+		echo ".env already exists, creating backup as .env.bak ..."; \
+		cp .env .env.bak; \
+	fi
 	cp .env.sample .env
-	echo "Please update env variables in .env"
-	echo "Once you are done : make run_15 or make run_150 "
+	@echo "UPDATE ENV VARIABLES IN .env"
+	@echo "Once you are done: make run_15 or make run_150"
 
-start: install_dependencies additional_packages reset_local_files set_up_env
+start: reinstall_package create_dataset_type reset_local_files set_up_env
 	direnv allow
 
 
@@ -59,42 +71,28 @@ reset_classification_env:
 	fi
 	@echo "Modification complete."
 
+
+
+# ALL RUN RULES ARE HERE
+# Always start the project with make start
+
 run_15:
 	$(MAKE) reset_classification_env new_value=15
-	direnv reload
 	$(MAKE) run
 
 run_150:
 	$(MAKE) reset_classification_env new_value=150
-	direnv reload
 	$(MAKE) run
 
 run_GAN:
 	$(MAKE) reset_classification_env new_value=GAN
-	direnv reload
 	$(MAKE) run
-
-
-run_preprocess:
-	python -c 'from pokedex.interface.main import preprocess; preprocess()'
-
-run_train:
-	python -c 'from pokedex.interface.main import train; train()'
 
 run_pred_15:
 	python -c 'from pokedex.interface.main import pred; pred('15')'
 
 run_pred_150:
 	python -c 'from pokedex.interface.main import pred; pred('150')'
-
-
-run_evaluate:
-	python -c 'from pokedex.interface.main import evaluate; evaluate()'
-
-run_all: run_preprocess run_train run_pred run_evaluate
-
-run_workflow:
-	PREFECT__LOGGING__LEVEL=${PREFECT_LOG_LEVEL} python -m pokedex.interface.workflow
 
 run_api:
 	uvicorn pokedex.api.fast:app --reload

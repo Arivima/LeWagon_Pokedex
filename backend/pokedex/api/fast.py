@@ -14,10 +14,10 @@ from tensorflow import keras
 app = FastAPI()
 
 # MODEL UPLOAD
-app.state.model_15 = load_model_from_gcs(model_type='type')
+app.state.model_15 = load_model_from_gcs(model_type='15')
 print("✅ model 15 loaded\n")
 
-app.state.model_150 = load_model_from_gcs(model_type='name')
+app.state.model_150 = load_model_from_gcs(model_type='150')
 print("✅ model 150 loaded\n")
 
 # app.state.model_GAN = load_model()

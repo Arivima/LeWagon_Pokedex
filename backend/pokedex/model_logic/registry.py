@@ -39,12 +39,12 @@ def save_results(params: dict, metrics: dict, context: str) -> None:
 
 def save_model(context : str, model: keras.Model = None) -> None:
     """
-    Persist trained model locally on the hard drive at f"{LOCAL_REGISTRY_PATH}/models/{timestamp}.keras"
+    Persist trained model locally on the hard drive at f"{LOCAL_REGISTRY_PATH}/models/{timestamp}.h5"
     """
     print(Fore.BLUE + f"\nSaving model ... - context {context}" + Style.RESET_ALL)
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
-    filename = f'{CLASSIFICATION_TYPE}_{WHO}_{context}_{timestamp}.keras'
+    filename = f'{CLASSIFICATION_TYPE}_{WHO}_{context}_{timestamp}.h5'
     print(filename)
 
     # Save model locally

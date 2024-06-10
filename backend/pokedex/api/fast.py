@@ -8,6 +8,7 @@ from pokedex.params import *
 import numpy as np
 import cv2
 import json
+from tensorflow import keras
 
 
 # Starting API

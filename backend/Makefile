@@ -103,4 +103,13 @@ run_pred_150:
 	python -c 'from pokedex.interface.main import pred; pred('150')'
 
 run_api:
-	uvicorn pokedex.api.fast:app --reload
+	uvicorn pokedex.api.fast:app --host 0.0.0.0
+# uvicorn pokedex.api.fast:app --port 8001 --host 0.0.0.0
+# uvicorn pokedex.api.fast:app --reload
+
+
+docker_build:
+	docker build --tag=$GAR_IMAGE:dev .                                  [🐍 pokemon-env]
+
+docker_run:
+	docker run -it $GAR_IMAGE:dev

@@ -362,7 +362,7 @@ def main_gan():
     tf.keras.utils.set_random_seed(7)
     batch_size = 32
     latent_dim = 100
-    epochs = 1
+    epochs = 1500
     # TODO makefile
     path = DATASET_NAME_PATH
     trained_models_folder = os.path.expanduser(os.path.join('~', '.lewagon', 'pokedex', 'gan','output_models'))

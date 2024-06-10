@@ -19,15 +19,9 @@ def save_results(params: dict, metrics: dict, context: str) -> None:
     - if MODEL_TARGET='mlflow', also persist them on MLflow
     """
     print(Fore.BLUE + "\nSaving results..." + Style.RESET_ALL)
-    if MODEL_TARGET == "mlflow":
-        if params is not None:
-            mlflow.log_params(params)
-        if metrics is not None:
-            mlflow.log_metrics(metrics)
-        print("✅ Results saved on MLflow")
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
-    filename = f'{CLASSIFICATION_TYPE}_{context}_{timestamp}.pickle'
+    filename = f'{CLASSIFICATION_TYPE}_{WHO}_{context}_{timestamp}.pickle'
     print(filename)
 
     # Save params locally
@@ -35,7 +29,7 @@ def save_results(params: dict, metrics: dict, context: str) -> None:
         params_path = os.path.join(LOCAL_REGISTRY_PATH, "params", filename)
         with open(params_path, "wb") as file:
             pickle.dump(params, file)
-    print("✅ Params saved locally")
+    print(f"✅ Params saved locally {params_path}")
 
     # Save metrics locally
     if metrics is not None:
@@ -43,7 +37,7 @@ def save_results(params: dict, metrics: dict, context: str) -> None:
         with open(metrics_path, "wb") as file:
             pickle.dump(metrics, file)
 
-    print("✅ Metrics saved locally")
+    print(f"✅ Metrics saved locally {metrics_path}")
 
 
 def save_model(context : str, model: keras.Model = None) -> None:
@@ -51,27 +45,17 @@ def save_model(context : str, model: keras.Model = None) -> None:
     Persist trained model locally on the hard drive at f"{LOCAL_REGISTRY_PATH}/models/{timestamp}.keras"
     - if MODEL_TARGET='mlflow', also persist it on MLflow instead of GCS (for unit 0703 only)
     """
-    print(Fore.BLUE + "\nSaving model..." + Style.RESET_ALL)
+    print(Fore.BLUE + f"\nSaving model ... - context {context}" + Style.RESET_ALL)
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
-    filename = f'{CLASSIFICATION_TYPE}_{context}_{timestamp}.keras'
+    filename = f'{CLASSIFICATION_TYPE}_{WHO}_{context}_{timestamp}.keras'
     print(filename)
 
     # Save model locally
     model_path = os.path.join(LOCAL_REGISTRY_PATH, "models", filename)
     model.save(model_path)
 
-    print("✅ Model saved locally")
-
-    if MODEL_TARGET == "mlflow":
-        project_name = f'{MLFLOW_MODEL_NAME}_{CLASSIFICATION_TYPE}'
-        mlflow.tensorflow.log_model(
-            model=model,
-            artifact_path="model",
-            registered_model_name=project_name
-        )
-        print("✅ Model saved to MLflow")
-        return None
+    print(f"✅ Model saved locally at {model_path}")
 
     return None
 
@@ -90,7 +74,6 @@ def load_model(
 
     """
     if MODEL_TARGET == "local":
-        print(Fore.BLUE + f"\nLoad latest model from local registry..." + Style.RESET_ALL)
 
         # Get the latest model version name by the timestamp on disk
         if stage == 'Production':
@@ -101,11 +84,14 @@ def load_model(
             print(f'ERROR : unknown stage {stage}')
             return None
 
+        print(Fore.BLUE + f"\nLoad latest model from local registry, stage {stage}" + Style.RESET_ALL)
+
         local_model_directory = os.path.join(registry_path, "models")
-        local_model_paths = glob.glob(f"{local_model_directory}/{model_type}*")
+        pattern_filename = f'{model_type}_{WHO}*'
+        local_model_paths = glob.glob(f"{local_model_directory}/{pattern_filename}")
 
         if not local_model_paths:
-            print(f"No model {model_type} local disk")
+            print(f"No model {model_type} at stage {stage} on local disk")
             return None
 
         most_recent_model_path_on_disk = sorted(local_model_paths)[-1]
@@ -120,33 +106,6 @@ def load_model(
 
         return latest_model
 
-    elif MODEL_TARGET == "mlflow":
-        print(Fore.BLUE + f"\nLoad [{stage}] model from MLflow..." + Style.RESET_ALL)
-
-        # Load model from MLflow
-        model = None
-        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-        client = MlflowClient()
-
-        project_name = f'{MLFLOW_MODEL_NAME}_{model_type}'
-
-        try:
-            model_versions = client.get_latest_versions(name=project_name, stages=[stage])
-            model_uri = model_versions[0].source
-
-            assert model_uri is not None
-        except:
-            print(f"\n❌ No model found with name {project_name} in stage {stage}")
-
-            return None
-
-        model = mlflow.tensorflow.load_model(model_uri=model_uri)
-
-        print("✅ Model loaded from MLflow")
-        if include_filename:
-            return latest_model, model_uri
-
-        return model
     else:
         return None
 
@@ -232,7 +191,7 @@ def load_results(context : str, stage="Production", include_filename=False) -> k
         # Get the latest params version name by the timestamp on disk
         print(Fore.BLUE + f"\nLoad {stage} params from local registry..." + Style.RESET_ALL)
         local_params_directory = os.path.join(registry_path, "params")
-        local_params_paths = glob.glob(f"{local_params_directory}/{CLASSIFICATION_TYPE}_{context}*")
+        local_params_paths = glob.glob(f"{local_params_directory}/{CLASSIFICATION_TYPE}_{WHO}_{context}*")
         if not local_params_paths:
             print(f'No {stage} params on local disk at dir', local_params_directory)
             return None
@@ -246,7 +205,7 @@ def load_results(context : str, stage="Production", include_filename=False) -> k
         # Get the latest metrics version name by the timestamp on disk
         print(Fore.BLUE + f"\nLoad {stage} metrics from local registry..." + Style.RESET_ALL)
         local_metrics_directory = os.path.join(registry_path, "metrics")
-        local_metrics_paths = glob.glob(f"{local_metrics_directory}/{CLASSIFICATION_TYPE}_{context}*")
+        local_metrics_paths = glob.glob(f"{local_metrics_directory}/{CLASSIFICATION_TYPE}_{WHO}_{context}*")
         if not local_metrics_paths:
             print(f'No {stage} metrics on local disk', local_metrics_directory)
             return None
@@ -386,25 +345,5 @@ def compare_vs_production():
 
         else:
             print("\n✅ Keeping production model in production")
-
-    #TODO
-    elif MODEL_TARGET == 'mlflow':
-        print('➡️ Staging to production')
-        # If latest model more performant than latest production model, should be moved to production
-        staging_model_metrics = load_latest_run(stage="Staging")
-        print(staging_model_metrics)
-        production_model_metrics = load_latest_run(stage="Production")
-        print(production_model_metrics)
-
-        if production_model_metrics is None:
-            print('No model currently in production : Staged current model to production')
-            mlflow_transition_model(current_stage="Staging", new_stage="Production")
-        elif staging_model_metrics is None:
-            print('ERROR : No model currently in staging ')
-        elif staging_model_metrics['best_accuracy'] > production_model_metrics['best_accuracy']:
-            print('current model is better than production model : Staged current model to production')
-            mlflow_transition_model(current_stage="Staging", new_stage="Production")
-        else:
-            print('production model is still better than current model : Production model stayed the same')
 
     return None

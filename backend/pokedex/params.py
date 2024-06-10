@@ -4,6 +4,7 @@ import os
 MODEL_TARGET = os.environ.get("MODEL_TARGET")
 CLASSIFICATION_TYPE= os.environ.get("CLASSIFICATION_TYPE")
 SAMPLED_DATASET= os.environ.get("SAMPLED_DATASET")
+WHO= os.environ.get("WHO")
 
 GCP_PROJECT = os.environ.get("GCP_PROJECT")
 GCP_REGION = os.environ.get("GCP_REGION")

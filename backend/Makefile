@@ -61,13 +61,18 @@ reset_classification_env:
 
 run_15:
 	$(MAKE) reset_classification_env new_value=15
+	direnv reload
 	$(MAKE) run
 
 run_150:
 	$(MAKE) reset_classification_env new_value=150
+	direnv reload
 	$(MAKE) run
 
-
+run_GAN:
+	$(MAKE) reset_classification_env new_value=GAN
+	direnv reload
+	$(MAKE) run
 
 
 run_preprocess:

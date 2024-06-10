@@ -1,10 +1,11 @@
 ''' package interface '''
 
 import os
+import json
 import pandas as pd
 import numpy as np
-from colorama import Fore, Style, init
 import tensorflow as tf
+from colorama import Fore, Style, init
 
 ## Classification import
 from pokedex.params import *
@@ -20,7 +21,6 @@ from pokedex.model_logic.registry import mlflow_transition_model, mlflow_run, lo
 from sklearn.model_selection import train_test_split
 
 ## GAN import
-
     ## data process, aug
 from pokedex.model_logic.model_GAN import gan_process,DiffAugment, rand_brightness, rand_saturation, rand_contrast, rand_translation, rand_cutout
 
@@ -33,7 +33,6 @@ from pokedex.model_logic.model_GAN import initialize_gen_optimizer, initialize_d
 from pokedex.model_logic.model_GAN import train_step, train_gan
 
 
-import json
 
 
 def preprocess(
@@ -194,7 +193,7 @@ def evaluate(
     print(Fore.MAGENTA + "\n⭐️ Use case: evaluate" + Style.RESET_ALL)
 
     # load latest model
-    model = load_model(stage="Production", model_type=CLASSIFICATION_TYPE)
+    model = load_model(stage="Staging", model_type=CLASSIFICATION_TYPE)
     assert model is not None
 
     # evaluate model
@@ -268,12 +267,6 @@ def pred(model_type : str = '15') -> np.ndarray:
 
 
 
-# LATER
-#TODO refactor pipeline preproc
-#TODO cascade up all hyperparameters, set default values to good model hyperparams
-#TODO re-read and refactor
-#TODO set up prefect + automatic production when better + differenciate 15 and 150 models
-#TODO set-up prediction
 
 
 def main():
@@ -377,12 +370,11 @@ def main_gan():
     train_gan(dataset,epochs,trained_models_folder,generated_images_folder,seed,batch_size,latent_dim,AUGMENT_FNS)
     print(Fore.MAGENTA + "\n ⭐️ ⭐️ ⭐️ MagiGAN training is over ⭐️ ⭐️ ⭐️ " + Style.RESET_ALL)
 
-# TODO
-# pred()
-    # except Exception as e:
-    #     print(f"Error : {e}")
 
 
 
 if __name__ == '__main__':
-    main_gan()
+    if CLASSIFICATION_TYPE == 'GAN':
+        main_gan()
+    else:
+        main()

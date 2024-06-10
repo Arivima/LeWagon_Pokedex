@@ -8,9 +8,11 @@ matplotlib
 seaborn
 scikit-learn
 opencv-python
+opencv-python-headless
 notebook
-tensorflow==2.10.0
+tensorflow==2.16.1
 colorama
+google-cloud-storage
 
 # API
 fastapi         # API framework

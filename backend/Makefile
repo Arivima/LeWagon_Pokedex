@@ -2,10 +2,12 @@
 install_dependencies:
 	pip install --upgrade pip
 	pip install -r requirements.txt
+	pip install -e .
+
 
 start_env:
-	pyenv virtualenv $(PYTHON_VERSION) $(ENV_NAME)
-	pyenv local $(ENV_NAME)
+	pyenv virtualenv 3.10.6 python-env
+	pyenv local python-env
 
 
 ENV_FILE := .env
@@ -18,6 +20,9 @@ reinstall_package:
 	@pip uninstall -y pokedex || :
 	@pip install -e .
 
+additional_packages:
+	sudo apt-get update && apt-get install libgl1
+# rm -rf ${ML_DIR}
 reset_local_files:
 	rm -rf ${ML_DIR}
 	mkdir -p ~/.lewagon/pokedex/data/
@@ -36,7 +41,7 @@ set_up_env:
 	echo "Please update env variables in .env"
 	echo "Once you are done : make run_15 or make run_150 "
 
-start: reinstall_package reset_local_files set_up_env
+start: install_dependencies additional_packages reset_local_files set_up_env
 	direnv allow
 
 
@@ -71,8 +76,12 @@ run_preprocess:
 run_train:
 	python -c 'from pokedex.interface.main import train; train()'
 
-run_pred:
-	python -c 'from pokedex.interface.main import pred; pred()'
+run_pred_15:
+	python -c 'from pokedex.interface.main import pred; pred('15')'
+
+run_pred_150:
+	python -c 'from pokedex.interface.main import pred; pred('150')'
+
 
 run_evaluate:
 	python -c 'from pokedex.interface.main import evaluate; evaluate()'
@@ -83,4 +92,4 @@ run_workflow:
 	PREFECT__LOGGING__LEVEL=${PREFECT_LOG_LEVEL} python -m pokedex.interface.workflow
 
 run_api:
-	uvicorn api.fast:app --reload
+	uvicorn pokedex.api.fast:app --reload

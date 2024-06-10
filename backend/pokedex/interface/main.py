@@ -5,19 +5,16 @@ import json
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-from colorama import Fore, Style, init
+from colorama import Fore, Style
 
 ## Classification import
 from pokedex.params import *
-from pokedex.model_logic.data import (load_images_from_folders,
-                                      load_images_from_bucket,
-                                      display_images)
-from pokedex.model_logic.preprocessing import preprocess_features, encode_target
+from pokedex.model_logic.data import load_images_from_folders
+from pokedex.model_logic.preprocessing import encode_target
 from pokedex.model_logic.model_classification import initialize_model_15, initialize_model_150
 from pokedex.model_logic.model_classification import compile_model, train_model, evaluate_model
-from pokedex.model_logic.plotting import plot_loss_accuracy
 from pokedex.model_logic.registry import load_model, save_model, save_results
-from pokedex.model_logic.registry import mlflow_transition_model, mlflow_run, load_latest_run, compare_vs_production
+from pokedex.model_logic.registry import compare_vs_production
 from sklearn.model_selection import train_test_split
 
 ## GAN import
@@ -88,7 +85,6 @@ def preprocess(
     print("✅ preprocess() done \n")
     return (X_processed, y_cat)
 
-@mlflow_run
 def train(
         X_y : tuple,
         classification_type : str = '15', # '15 types' or '150 pokemon'
@@ -166,21 +162,16 @@ def train(
         nb_images=len(X_train),
         img_size=X_train.shape[1:3]
         )
-    # Save results on the hard drive using pokedex.model_logic.registry + MLFlow
+    # Save results on the hard drive using pokedex.model_logic.registry
     save_results(params=params, metrics=dict(best_accuracy=best_accuracy), context='train')
 
-    # Save model weight on the hard drive + MLFlow
+    # Save model weight on the hard drive
     save_model(model=model, context='train')
-
-    if MODEL_TARGET == 'mlflow':
-        # The latest model should be moved to staging
-        mlflow_transition_model(current_stage="None", new_stage="Staging")
 
     print("✅ train() done \n")
     return best_accuracy, X_test, y_test
 
 
-@mlflow_run
 def evaluate(
         X_test,
         y_test,

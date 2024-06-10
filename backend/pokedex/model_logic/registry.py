@@ -8,15 +8,12 @@ from colorama import Fore, Style
 from tensorflow import keras
 
 from pokedex.params import *
-import mlflow
-from mlflow.tracking import MlflowClient
 
 def save_results(params: dict, metrics: dict, context: str) -> None:
     """
     Persist params & metrics locally on the hard drive at
     "{LOCAL_REGISTRY_PATH}/params/{current_timestamp}.pickle"
     "{LOCAL_REGISTRY_PATH}/metrics/{current_timestamp}.pickle"
-    - if MODEL_TARGET='mlflow', also persist them on MLflow
     """
     print(Fore.BLUE + "\nSaving results..." + Style.RESET_ALL)
 
@@ -43,7 +40,6 @@ def save_results(params: dict, metrics: dict, context: str) -> None:
 def save_model(context : str, model: keras.Model = None) -> None:
     """
     Persist trained model locally on the hard drive at f"{LOCAL_REGISTRY_PATH}/models/{timestamp}.keras"
-    - if MODEL_TARGET='mlflow', also persist it on MLflow instead of GCS (for unit 0703 only)
     """
     print(Fore.BLUE + f"\nSaving model ... - context {context}" + Style.RESET_ALL)
 
@@ -68,7 +64,6 @@ def load_model(
     """
     Return a saved model:
     - locally (latest one in alphabetical order)
-    - or from MLFLOW (by "stage") if MODEL_TARGET=='mlflow'
 
     Return None (but do not Raise) if no model is found
 
@@ -108,66 +103,6 @@ def load_model(
 
     else:
         return None
-
-
-def mlflow_transition_model(current_stage: str, new_stage: str) -> None:
-    """
-    Transition the latest model from the `current_stage` to the
-    `new_stage` and archive the existing model in `new_stage`
-    """
-    if MODEL_TARGET == "mlflow":
-        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-
-        client = MlflowClient()
-
-        project_name = f'{MLFLOW_MODEL_NAME}_{CLASSIFICATION_TYPE}'
-
-        version = client.get_latest_versions(name=project_name, stages=[current_stage])
-
-        if not version:
-            print(f"\n❌ No model found with name {project_name} in stage {current_stage}")
-            return None
-
-        client.transition_model_version_stage(
-            name=project_name,
-            version=version[0].version,
-            stage=new_stage,
-            archive_existing_versions=True
-        )
-
-        print(f"✅ Model {project_name} (version {version[0].version}) transitioned from {current_stage} to {new_stage}")
-
-    return None
-
-
-def mlflow_run(func):
-    """
-    Generic function to log params and results to MLflow along with TensorFlow auto-logging
-
-    Args:
-        - func (function): Function you want to run within the MLflow run
-        - params (dict, optional): Params to add to the run in MLflow. Defaults to None.
-        - context (str, optional): Param describing the context of the run. Defaults to "Train".
-    """
-
-    def wrapper(*args, **kwargs):
-        if MODEL_TARGET == "mlflow":
-            mlflow.end_run()
-            mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-            mlflow.set_experiment(experiment_name=MLFLOW_EXPERIMENT)
-
-            with mlflow.start_run():
-                print('URI : ', MLFLOW_TRACKING_URI)
-                print('EXPERIMENT : ',MLFLOW_EXPERIMENT)
-
-                mlflow.tensorflow.autolog()
-                results = func(*args, **kwargs)
-            print("✅ mlflow_run auto-log done")
-            return results
-        else:
-            results = func(*args, **kwargs)
-        return results
-    return wrapper
 
 
 
@@ -225,43 +160,6 @@ def load_results(context : str, stage="Production", include_filename=False) -> k
     return None
 
 
-
-
-def load_latest_run(stage="Production") -> keras.Model:
-    """
-    Loads the latest run from MLFLOW (by "stage") if MODEL_TARGET=='mlflow'
-    Return metrics
-    """
-    if MODEL_TARGET == "mlflow":
-        print(Fore.BLUE + f"\nLoad latest [{stage}] run from MLflow..." + Style.RESET_ALL)
-
-        # Load model from MLflow
-        model = None
-        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-        client = MlflowClient()
-
-        project_name = f'{MLFLOW_MODEL_NAME}_{CLASSIFICATION_TYPE}'
-
-        try:
-            model_versions = client.get_latest_versions(name=project_name, stages=[stage])
-            model_uri = model_versions[0].source
-            assert model_uri is not None
-
-        except:
-            print(f"\n❌ No model found with name {project_name} in stage {stage}")
-
-            return None
-
-        model = mlflow.tensorflow.load_model(model_uri=model_uri)
-        run_id = model_uri.split('/')[1]
-        run = mlflow.get_run(run_id)
-        metrics = run.data.metrics
-        params = run.data.params
-        print(metrics, params)
-
-        print(f"✅ Latest {stage} run loaded from MLflow")
-        return metrics
-    return None
 
 
 def delete_production_folders_content(registry_path):

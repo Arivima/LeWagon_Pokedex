@@ -6,8 +6,8 @@
 # Définir les chemins
 original_dir="../all_data_name_cleaned"
 new_dir="../all_data_type_cleaned"
-csv_file="FirstGenPokemon.csv"
-
+csv_file="../scripts/FirstGenPokemon.csv"
+echo
 # Lire le fichier CSV
 while IFS=, read -r Number Name Types Type1 Type2 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _; do
     # Ignorer la ligne d'en-tête
@@ -31,5 +31,7 @@ while IFS=, read -r Number Name Types Type1 Type2 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
     fi
 done < "$csv_file"
-
-echo "Les images ont été copiées avec succès dans les dossiers de types appropriés."
+echo "nb images in all_data_name_cleaned";
+find ../all_data_name_cleaned -type f | wc -l;
+echo "nb images in all_data_type_cleaned";
+find ../all_data_type_cleaned -type f | wc -l;

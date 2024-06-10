@@ -4,7 +4,7 @@ import pandas as pd
 import cv2
 
 from sklearn.preprocessing import OneHotEncoder
-from tensorflow.keras.utils import to_categorical
+
 
 
 def proc_to_bw_resized(

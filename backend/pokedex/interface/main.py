@@ -3,7 +3,10 @@
 import os
 import pandas as pd
 import numpy as np
+from colorama import Fore, Style, init
+import tensorflow as tf
 
+## Classification import
 from pokedex.params import *
 from pokedex.model_logic.data import load_images_from_folders, display_images
 from pokedex.model_logic.preprocessing import preprocess_features, encode_target
@@ -14,7 +17,20 @@ from pokedex.model_logic.registry import load_model, save_model, save_results
 from pokedex.model_logic.registry import mlflow_transition_model, mlflow_run, load_latest_run, compare_vs_production
 from sklearn.model_selection import train_test_split
 
-from colorama import Fore, Style, init
+## GAN import
+
+    ## data process, aug
+from pokedex.model_logic.model_GAN import gan_process,DiffAugment, rand_brightness, rand_saturation, rand_contrast, rand_translation, rand_cutout
+
+    ##  model , loss , optimizer
+from pokedex.model_logic.model_GAN import initialize_discriminator, initialize_generator
+from pokedex.model_logic.model_GAN import generator_loss, discriminator_loss
+from pokedex.model_logic.model_GAN import initialize_gen_optimizer, initialize_disc_optimizer
+
+    ## train_step
+from pokedex.model_logic.model_GAN import train_step, train_gan
+
+
 
 
 
@@ -297,6 +313,36 @@ def main():
     )
     print(Fore.MAGENTA + "\n ⭐️ ⭐️ ⭐️ Closing Pokedex ⭐️ ⭐️ ⭐️ " + Style.RESET_ALL)
 
+def main_gan():
+    # try :
+    print(Fore.MAGENTA + "\n ⭐️ ⭐️ ⭐️ Starting MagiGAN training ⭐️ ⭐️ ⭐️ " + Style.RESET_ALL)
+    # Here only place to define hyperparams
+    #VARIABLES :
+
+    AUGMENT_FNS = {
+        'color': [rand_brightness, rand_saturation, rand_contrast],
+        'translation': [rand_translation],
+        'cutout': [rand_cutout],
+    }
+
+
+    tf.keras.utils.set_random_seed(7)
+    batch_size = 32
+    latent_dim = 100
+    epochs = 1
+    # TODO makefile
+    path = DATASET_NAME_PATH
+    trained_models_folder = os.path.expanduser(os.path.join('~', '.lewagon', 'pokedex', 'gan','output_models'))
+    generated_images_folder = os.path.expanduser(os.path.join('~', '.lewagon', 'pokedex', 'gan','output_images'))
+
+    print(f"Preprocessing the data from {path}. \n")
+    dataset = gan_process(path=path,batch_size=batch_size)
+    print("✅ preprocess() done \n")
+    print("✅ initialize_discriminator and initialize_generator done \n")
+    print(f" ♾️ Begining training on {epochs} epochs ♾️\n")
+    seed = tf.random.normal([25, latent_dim])
+    train_gan(dataset,epochs,trained_models_folder,generated_images_folder,seed,batch_size,latent_dim,AUGMENT_FNS)
+    print(Fore.MAGENTA + "\n ⭐️ ⭐️ ⭐️ MagiGAN training is over ⭐️ ⭐️ ⭐️ " + Style.RESET_ALL)
 
 # TODO
 # pred()
@@ -306,4 +352,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main_gan()

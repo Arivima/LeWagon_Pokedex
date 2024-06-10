@@ -13,10 +13,10 @@ from keras.layers import Conv2D,Dropout,Dense,Flatten,Conv2DTranspose,BatchNorma
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from zipfile import ZipFile
-import imageio
+# from zipfile import ZipFile
+# import imageio
 from tqdm import tqdm
-import time
+# import time
 
 
 
@@ -101,20 +101,22 @@ AUGMENT_FNS = {
 }
 
 
-tf.keras.utils.set_random_seed(7)
-batch_size = 32
-path = "/kaggle/input/all-data-pokemon/all_data_name"
-trained_models_folder = "/kaggle/working/models"
-generated_images_folder = "/kaggle/working/images"
+# tf.keras.utils.set_random_seed(7)
+# batch_size = 32
+# path = "/kaggle/input/all-data-pokemon/all_data_name"
+# trained_models_folder = "/kaggle/working/models"
+# generated_images_folder = "/kaggle/working/images"
 
 
 ##########################################################
+def gan_process(path,batch_size):
+    dataset = preprocessing.image_dataset_from_directory(
+        path, label_mode=None, image_size=(128, 128), batch_size=batch_size
+    )
+    dataset = dataset.map(lambda x: (x - 127.5) / 127.5)
+    return dataset
 
-dataset = preprocessing.image_dataset_from_directory(
-    path, label_mode=None, image_size=(128, 128), batch_size=batch_size
-)
-dataset = dataset.map(lambda x: (x - 127.5) / 127.5)
-
+# dataset = gan_process(path)
 
 def initialize_discriminator():
     discriminator = Sequential(
@@ -215,17 +217,18 @@ def discriminator_loss(label, output):
     disc_loss = binary_cross_entropy(label, output)
     return disc_loss
 
-def optimizer():
+def initialize_gen_optimizer():
     generator_optimizer = tf.keras.optimizers.Adam(0.0002, beta_1=0.5)
+    return generator_optimizer
+def initialize_disc_optimizer():
     discriminator_optimizer = tf.keras.optimizers.Adam(0.0002, beta_1=0.5)
-    return generator_optimizer, discriminator_optimizer
-
+    return discriminator_optimizer
 
 @tf.function
-def train_step(images,generator,discriminator):
+def train_step(images,generator,discriminator,latent_dim,batch_size, discriminator_optimizer, generator_optimizer):
     noise = tf.random.normal([batch_size, latent_dim])
     images = DiffAugment(images, policy='color,translation,cutout')
-    generator_optimizer, discriminator_optimizer = optimizer()
+
     with tf.GradientTape() as disc_tape1:
         generated_images = generator(noise, training=True)
         generated_images = DiffAugment(generated_images,policy='color,translation,cutout')
@@ -257,38 +260,43 @@ def train_step(images,generator,discriminator):
 
     return disc_loss1 + disc_loss2, gen_loss
 
-
-seed = tf.random.normal([25, latent_dim])
-disc_losses = []
-gen_losses = []
-def train(dataset, epochs):
+# latent_dim =100
+# seed = tf.random.normal([25, latent_dim])
+# disc_losses = []
+# gen_losses = []
+def train_gan(dataset, epochs,trained_models_folder, generated_images_folder,seed,batch_size,latent_dim,AUGMENT_FNS):
     generator = initialize_generator()
-    discriminator = initialize_generator()
-    generate_and_save_images(generator, 0, seed)
-    discriminator.save(trained_models_folder + "Discriminator_epoch_0"+'.h5')
-    generator.save(trained_models_folder + "Generator_epoch_0"+'.h5')
+    discriminator = initialize_discriminator()
+    generate_and_save_images(generator, 0, seed, generated_images_folder)
+    discriminator.save(os.path.join(trained_models_folder,"Discriminator_epoch_0.h5"))
+    generator.save(os.path.join(trained_models_folder,"Generator_epoch_0.h5"))
+    disc_losses = []
+    gen_losses = []
+    discriminator_optimizer = initialize_disc_optimizer()
+    generator_optimizer = initialize_gen_optimizer()
     for epoch in range(epochs):
         disc_loss = gen_loss = 0
         print('Currently training on epoch {} (out of {}).'.format(epoch+1, epochs))
         for image_batch in tqdm(dataset):
-            losses = train_step(image_batch,generator,discriminator)
+            losses = train_step(image_batch,generator,discriminator,latent_dim,batch_size, discriminator_optimizer, generator_optimizer)
             disc_loss += losses[0]
             gen_loss += losses[1]
 
-        generate_and_save_images(generator, epoch+1, seed)
+        generate_and_save_images(generator, epoch+1, seed, generated_images_folder)
         gen_losses.append(gen_loss.numpy())
         disc_losses.append(disc_loss.numpy())
 
         if epoch % 100 == 0:
-            discriminator.save(trained_models_folder + "Discriminator_epoch_%d" % epoch+'.h5')
-            generator.save(trained_models_folder + "Generator_epoch_%d" % epoch+'.h5')
-
-    generate_and_save_images(generator, epochs, seed)
-    discriminator.save(trained_models_folder + "Discriminator_epoch_%d" % epochs+'.h5')
-    generator.save(trained_models_folder + "Generator_epoch_%d" % epochs+'.h5')
+            discriminator.save(os.path.join(trained_models_folder,f"Discriminator_epoch_{epoch}.h5"))
+            generator.save(os.path.join(trained_models_folder,f"Generator_epoch_{epoch}.h5"))
 
 
-def generate_and_save_images(model, epoch, seed, dim =(5, 5), figsize=(5, 5)):
+    generate_and_save_images(generator, epochs, seed,generated_images_folder)
+    discriminator.save(os.path.join(trained_models_folder,f"Discriminator_epoch_{epochs}.h5"))
+    generator.save(os.path.join(trained_models_folder,f"Generator_epoch_{epochs}.h5"))
+
+
+def generate_and_save_images(model, epoch, seed, generated_images_folder, dim =(5, 5), figsize=(5, 5)):
     generated_images = model(seed)
     generated_images *= 255
     generated_images.numpy()
@@ -300,17 +308,17 @@ def generate_and_save_images(model, epoch, seed, dim =(5, 5), figsize=(5, 5)):
         plt.xticks([])
         plt.yticks([])
     plt.tight_layout()
-    plt.savefig(generated_images_folder + 'generated_image_epoch_%d.png' % epoch)
+    plt.savefig(os.path.join(generated_images_folder,f'generated_image_epoch_{epoch}.png'))
     plt.close()
 
 
-train(dataset,1000)
+# train_gan(dataset,1000)
 
-plt.figure()
-plt.plot(disc_losses, label='Discriminator Loss')
-plt.plot(gen_losses, label='Generator Loss')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend()
-plt.savefig(generated_images_folder + 'losses.png')
-plt.close()
+# plt.figure()
+# plt.plot(disc_losses, label='Discriminator Loss')
+# plt.plot(gen_losses, label='Generator Loss')
+# plt.xlabel('Epochs')
+# plt.ylabel('Loss')
+# plt.legend()
+# plt.savefig(generated_images_folder + 'losses.png')
+# plt.close()

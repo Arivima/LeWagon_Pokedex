@@ -27,6 +27,9 @@ reset_local_files:
 	mkdir ~/.lewagon/pokedex/training_outputs/metrics
 	mkdir ~/.lewagon/pokedex/training_outputs/models
 	mkdir ~/.lewagon/pokedex/training_outputs/params
+	mkdir ~/.lewagon/pokedex/gan
+	mkdir ~/.lewagon/pokedex/gan/output_models
+	mkdir ~/.lewagon/pokedex/gan/output_images
 
 set_up_env:
 	cp .env.sample .env

@@ -16,13 +16,13 @@ from pokedex.model_logic.model_classification import initialize_model_15, initia
 from pokedex.model_logic.model_classification import compile_model, train_model, evaluate_model
 from pokedex.model_logic.plotting import plot_loss_accuracy
 from pokedex.model_logic.registry import load_model, save_model, save_results
-from pokedex.model_logic.registry import mlflow_transition_model, mlflow_run, load_latest_run, compare_vs_production
+from pokedex.model_logic.registry import compare_vs_production
 from sklearn.model_selection import train_test_split
 
 ## GAN import
 
     ## data process, aug
-from pokedex.model_logic.model_GAN import gan_process,DiffAugment, rand_brightness, rand_saturation, rand_contrast, rand_translation, rand_cutout
+from pokedex.model_logic.model_GAN import gan_process, DiffAugment, rand_brightness, rand_saturation, rand_contrast, rand_translation, rand_cutout
 
     ##  model , loss , optimizer
 from pokedex.model_logic.model_GAN import initialize_discriminator, initialize_generator
@@ -89,7 +89,6 @@ def preprocess(
     print("✅ preprocess() done \n")
     return (X_processed, y_cat)
 
-@mlflow_run
 def train(
         X_y : tuple,
         classification_type : str = '15', # '15 types' or '150 pokemon'
@@ -173,15 +172,10 @@ def train(
     # Save model weight on the hard drive + MLFlow
     save_model(model=model, context='train')
 
-    if MODEL_TARGET == 'mlflow':
-        # The latest model should be moved to staging
-        mlflow_transition_model(current_stage="None", new_stage="Staging")
-
     print("✅ train() done \n")
     return best_accuracy, X_test, y_test
 
 
-@mlflow_run
 def evaluate(
         X_test,
         y_test,

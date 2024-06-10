@@ -1,40 +1,26 @@
-# Use the official Python image from the Docker Hub
-# FROM python:3.10.6-alpine
-FROM python:3.10.6-slim-buster
+# create an image from an environment
+FROM python:3.10.6-buster
 
-COPY requirements.txt /requirements.txt
-COPY pokedex /pokedex
-COPY setup.py /setup.py
-COPY Makefile Makefile
-COPY .env.sample .env
+# COPY -> select the folder you need
+COPY pokedex pokedex
+COPY requirements.txt requirements.txt
 
+# RUN run terminal command
 RUN pip install --upgrade pip
-
 RUN pip install -r requirements.txt
 
-RUN pip install -e .
 
-# RUN apt-get update && apt-get install mesa-libGL
+# install your package
+COPY setup.py setup.py
+RUN pip install .
+RUN apt update && apt install -y libsm6 libxext6 ffmpeg libfontconfig1 libxrender1 libgl1-mesa-glx
+EXPOSE 8000
 
-RUN mkdir -p ~/.lewagon/pokedex/data/
-RUN mkdir ~/.lewagon/pokedex/data/raw
-RUN mkdir ~/.lewagon/pokedex/data/processed
-RUN mkdir ~/.lewagon/pokedex/training_outputs
-RUN mkdir ~/.lewagon/pokedex/training_outputs/metrics
-RUN mkdir ~/.lewagon/pokedex/training_outputs/models
-RUN mkdir ~/.lewagon/pokedex/training_outputs/params
+# controls functinnality of the container
+# uvicorn to control the server port
+# local
 
+CMD uvicorn pokedex.api.fast:app --host 0.0.0.0 
 
-# RUN pip install -r requirements.txt
-
-# RUN reset_local_files
-# RUN mkdir -p ~/.lewagon/pokedex/data/
-# RUN mkdir ~/.lewagon/pokedex/data/raw
-# RUN mkdir ~/.lewagon/pokedex/data/processed
-# RUN mkdir ~/.lewagon/pokedex/training_outputs
-# RUN mkdir ~/.lewagon/pokedex/training_outputs/metrics
-# RUN mkdir ~/.lewagon/pokedex/training_outputs/models
-# RUN mkdir ~/.lewagon/pokedex/training_outputs/params
-
-# Start FastAPI
-CMD uvicorn pokedex.api.fast:app --host 0.0.0.0
+# Deploy to GCP
+#CMD uvicorn app_folder.app_file:app --host 0.0.0.0 --port $PORT

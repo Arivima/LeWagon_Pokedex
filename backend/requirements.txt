@@ -1,7 +1,3 @@
-pytest
-pylint
-ipdb
-jupyterlab
 numpy
 pandas
 matplotlib
@@ -17,4 +13,3 @@ google-cloud-storage
 # API
 fastapi         # API framework
 uvicorn         # web server
-mlflow==2.1.1

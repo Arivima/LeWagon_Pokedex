@@ -17,7 +17,10 @@ def save_results(params: dict, metrics: dict, context: str) -> None:
     """
     print(Fore.BLUE + "\nSaving results..." + Style.RESET_ALL)
     timestamp = time.strftime("%Y%m%d-%H%M%S")
-    filename = f'{CLASSIFICATION_TYPE}_{WHO}_{context}_{timestamp}.pickle'
+    accuracy = f"A{str(round(metrics['accuracy'], 2))}"
+    val_loss = f"L{str(round(metrics['loss'], 2))}"
+
+    filename = f'{CLASSIFICATION_TYPE}_{WHO}_{context}_{timestamp}_{accuracy}_{val_loss}.pickle'
     print(filename)
 
     # Save params locally
@@ -36,14 +39,17 @@ def save_results(params: dict, metrics: dict, context: str) -> None:
     print(f"✅ Metrics saved locally {metrics_path}")
 
 
-def save_model(context : str, model: keras.Model = None) -> None:
+def save_model(context : str, metrics: dict, model: keras.Model) -> None:
     """
     Persist trained model locally on the hard drive at f"{LOCAL_REGISTRY_PATH}/models/{timestamp}.keras"
     """
     print(Fore.BLUE + f"\nSaving model ... - context {context}" + Style.RESET_ALL)
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
-    filename = f'{CLASSIFICATION_TYPE}_{WHO}_{context}_{timestamp}.h5'
+    accuracy = f"A{str(round(metrics['accuracy'], 2))}"
+    val_loss = f"L{str(round(metrics['loss'], 2))}"
+
+    filename = f'{CLASSIFICATION_TYPE}_{WHO}_{context}_{timestamp}_{accuracy}_{val_loss}.h5'
     print(filename)
 
     # Save model locally
@@ -55,36 +61,115 @@ def save_model(context : str, model: keras.Model = None) -> None:
     return None
 
 
-def load_model(
+def save_production_model_to_gcs(model_type : str = CLASSIFICATION_TYPE):
+    """
+    Save production model to gcs, default to CLASSIFICATION_TYPE
+    Can be called from makefile
+    """
+    print(Fore.BLUE + f"\nSaving model {model_type} to gcs ..." + Style.RESET_ALL)
+
+    client = storage.Client(GCP_PROJECT)
+    print('client.project\t', client.project)
+    bucket = client.get_bucket(BUCKET_NAME)
+    print('bucket.name\t', bucket.name)
+
+    local_model_directory = os.path.join(PRODUCTION_REGISTRY_PATH, "models")
+    local_model_paths = glob.glob(f"{local_model_directory}/{model_type}*")
+
+    if not local_model_paths:
+        print(f"No model {model_type} local disk")
+        return None
+
+    most_recent_model_path_on_disk = sorted(local_model_paths)[-1]
+    model_filename = os.path.basename(most_recent_model_path_on_disk)
+
+    blob = bucket.blob(model_filename)
+
+    blob.upload_from_filename(most_recent_model_path_on_disk)
+
+    print(f"✅ Model uploaded to GCS at {BUCKET_NAME}/{model_filename}")
+    return None
+
+
+def load_model_from_gcs(
     model_type : str = CLASSIFICATION_TYPE
     ) -> keras.Model:
     """Load model from google cloud storage, if don't find it load from local
-
     Args:
-        model_type (str, optional): which model to load. Defaults to CLASSIFICATION_TYPE.
-
+        model_type (str, optional): which model type to load. Defaults to CLASSIFICATION_TYPE.
     Returns:
         keras.Model: model to do your task
     """
-    if MODEL_TARGET == "gcs":
-        try:
-            client = storage.Client()
-            blobs = list(client.get_bucket(BUCKET_NAME).list_blobs(prefix="keras"))
-            for blob in blobs:
-                if CLASSIFICATION_TYPE in blob.name:
-                    model_path_to_save = os.path.join(MODEL_PATH, blob.name)
-                    blob.download_to_filename(model_path_to_save)
-                    model_find = keras.models.load_model(model_path_to_save)
-                    break
-            print("✅ Model loaded from gcs")
-        except:
-            print("can't load from gcs")
-            for model in os.listdir("../backend/pokedex/production_registry/models"):
-                if  CLASSIFICATION_TYPE in model:
-                    model_find = keras.models.load_model(os.path.join("../backend/pokedex/production_registry/modelsmodel"), model)
-                    break
-            print("✅ Model loaded locally")
-    return model_find
+    print(Fore.BLUE + f"\nLoad latest model {model_type} from gcs ..." + Style.RESET_ALL)
+    try:
+        client = storage.Client(GCP_PROJECT)
+        print('client.project\t', client.project)
+        bucket = client.get_bucket(BUCKET_NAME)
+        print('bucket.name\t', bucket.name)
+        blobs = list(client.list_blobs(BUCKET_NAME))
+        print('nb files on gcs\t', len(blobs))
+        if (len(blobs) > 0):
+            print('files\t\t', [blob.name for blob in blobs])
+
+        sorted_blobs = sorted(blobs, key=lambda blob: blob.name, reverse=True)
+
+        for blob in sorted_blobs:
+            if blob.name.startswith(str(model_type) + '_' ):
+                print('gcs\t\t', blob.name)
+                model_path_to_save = os.path.join(GCS_PATH, blob.name)
+                print('local\t\t', model_path_to_save)
+                blob.download_to_filename(model_path_to_save)
+                model_find = keras.models.load_model(model_path_to_save)
+                break
+        print("✅ Model loaded from gcs")
+        return model_find
+    except:
+        print("can't load from gcs")
+        model_find = load_model_from_local(stage='Production', model_type=model_type)
+        return model_find
+
+
+def load_model_from_local(
+    stage : str = "Production",
+    include_filename : bool = False,
+    model_type : str = CLASSIFICATION_TYPE
+    ) -> keras.Model:
+    """
+    Return a saved model:
+    - locally (latest one in alphabetical order)
+    Return None (but do not Raise) if no model is found
+    """
+    print(Fore.BLUE + f"\nLoad latest model from local registry..." + Style.RESET_ALL)
+
+    # Get the latest model version name by the timestamp on disk
+    if stage == 'Production':
+        registry_path = PRODUCTION_REGISTRY_PATH
+    elif stage == 'Staging':
+        registry_path = LOCAL_REGISTRY_PATH
+    else:
+        print(f'ERROR : unknown stage {stage}')
+        return None
+
+    local_model_directory = os.path.join(registry_path, "models")
+    local_model_paths = glob.glob(f"{local_model_directory}/{model_type}*")
+
+    if not local_model_paths:
+        print(f"No model {model_type} local disk")
+        return None
+
+    most_recent_model_path_on_disk = sorted(local_model_paths)[-1]
+
+    latest_model = keras.models.load_model(most_recent_model_path_on_disk)
+
+    print('model :', os.path.basename(most_recent_model_path_on_disk))
+    print("✅ Model loaded from local disk")
+    if include_filename:
+        model_filename = os.path.basename(most_recent_model_path_on_disk)
+        return latest_model, model_filename
+
+    return latest_model
+
+
 
 
 def load_results(context : str, stage="Production", include_filename=False) -> keras.Model:
@@ -215,7 +300,7 @@ def compare_vs_production():
                 pickle.dump(last_metrics, file)
 
             # Save model locally
-            model, model_filename = load_model(stage='Staging', model_type=CLASSIFICATION_TYPE, include_filename=True)
+            model, model_filename = load_model_from_local(stage='Staging', model_type=CLASSIFICATION_TYPE, include_filename=True)
             model_path = os.path.join(registry_path, "models", model_filename)
             print('Copying last run model to ', model_path)
             model.save(model_path)

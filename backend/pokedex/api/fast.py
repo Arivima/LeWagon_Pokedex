@@ -1,7 +1,7 @@
 ''' API ENDPOINTS '''
 # IMPORTS
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from pokedex.model_logic.registry import load_model
+from pokedex.model_logic.registry import load_model_from_gcs
 from pokedex.params import *
 
 import numpy as np
@@ -14,10 +14,10 @@ from tensorflow import keras
 app = FastAPI()
 
 # MODEL UPLOAD
-app.state.model_15 = load_model(model_type='type')
+app.state.model_15 = load_model_from_gcs(model_type='type')
 print("✅ model 15 loaded\n")
 
-app.state.model_150 = load_model(model_type='name')
+app.state.model_150 = load_model_from_gcs(model_type='name')
 print("✅ model 150 loaded\n")
 
 # app.state.model_GAN = load_model()

@@ -102,6 +102,14 @@ run_pred_15:
 run_pred_150:
 	python -c 'from pokedex.interface.main import pred; pred('150')'
 
+
+run_save_model_to_gcs_15:
+	python -c 'from pokedex.model_logic.registry import save_production_model_to_gcs; save_production_model_to_gcs('15')'
+
+run_save_model_to_gcs_150:
+	python -c 'from pokedex.model_logic.registry import save_production_model_to_gcs; save_production_model_to_gcs('150')'
+
+
 run_api:
 	uvicorn pokedex.api.fast:app --host 0.0.0.0
 # uvicorn pokedex.api.fast:app --port 8001 --host 0.0.0.0

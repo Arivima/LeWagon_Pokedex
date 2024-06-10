@@ -13,7 +13,7 @@ from pokedex.model_logic.data import load_images_from_folders
 from pokedex.model_logic.preprocessing import encode_target
 from pokedex.model_logic.model_classification import initialize_model_15, initialize_model_150
 from pokedex.model_logic.model_classification import compile_model, train_model, evaluate_model
-from pokedex.model_logic.registry import load_model, save_model, save_results
+from pokedex.model_logic.registry import load_model_from_local, load_model_from_gcs, save_model, save_results
 from pokedex.model_logic.registry import compare_vs_production
 from sklearn.model_selection import train_test_split
 
@@ -146,7 +146,12 @@ def train(
         validation_split=validation_split,
         verbose=verbose
     )
-    best_accuracy = np.max(history.history['accuracy'])
+
+    min_val_loss_index = np.argmin(history.history['val_loss'])
+    metrics = {
+        'accuracy':history.history['accuracy'][min_val_loss_index],
+        'loss':history.history['val_loss'][min_val_loss_index],
+    }
 
     # print(Fore.PINK +"Hyperparamètres du modèle :" + Style.RESET_ALL)
     # for key, value in model.get_config().items():
@@ -163,13 +168,13 @@ def train(
         img_size=X_train.shape[1:3]
         )
     # Save results on the hard drive using pokedex.model_logic.registry
-    save_results(params=params, metrics=dict(best_accuracy=best_accuracy), context='train')
+    save_results(params=params, metrics=metrics, context='train')
 
     # Save model weight on the hard drive
-    save_model(model=model, context='train')
+    save_model(model=model, context='train', metrics=metrics)
 
     print("✅ train() done \n")
-    return best_accuracy, X_test, y_test
+    return metrics['accuracy'], X_test, y_test
 
 
 def evaluate(
@@ -184,7 +189,7 @@ def evaluate(
     print(Fore.MAGENTA + "\n⭐️ Use case: evaluate" + Style.RESET_ALL)
 
     # load latest model
-    model = load_model(stage="Staging", model_type=CLASSIFICATION_TYPE)
+    model = load_model_from_local(stage="Staging", model_type=CLASSIFICATION_TYPE)
     assert model is not None
 
     # evaluate model
@@ -203,6 +208,7 @@ def evaluate(
         nb_images=len(X_test),
         img_size=X_test.shape[1:3]
     )
+
     save_results(params=params, metrics=metrics_dict, context='evaluate')
 
     print("✅ evaluate() done \n")
@@ -233,7 +239,7 @@ def pred(model_type : str = '15') -> np.ndarray:
     print("✅ images loaded and processed\n")
 
     # load model in production
-    model = load_model(stage='Production', model_type=model_type)
+    model = load_model_from_gcs(model_type=model_type)
     print("✅ model loaded\n")
 
     # make prediction

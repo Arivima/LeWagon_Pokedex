@@ -4,14 +4,14 @@
 
 
 # Définir les chemins
-original_dir="all_data_name"
-new_dir="all_data_type"
-csv_file="scripts/FirstGenPokemon.csv"
+original_dir="../all_data_name_cleaned"
+new_dir="../all_data_type_cleaned"
+csv_file="FirstGenPokemon.csv"
 
 # Lire le fichier CSV
 while IFS=, read -r Number Name Types Type1 Type2 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _; do
     # Ignorer la ligne d'en-tête
-    if [[ "$Number" == "Number" ]]; then
+    if [ "$Number" == "Number" ]; then
         continue
     fi
 

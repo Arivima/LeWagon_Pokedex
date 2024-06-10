@@ -40,7 +40,7 @@ def load_images_from_bucket(
     y = []
 
     # Initialize a client
-    client = storage.Client()
+    client = storage.Client(project=GCP_PROJECT)
     print(client.project)
 
     # Get the bucket
@@ -50,16 +50,16 @@ def load_images_from_bucket(
         # Perform operations with the bucket
 
         # List all blobs in the bucket
-        blobs = list(bucket.list_blobs(prefix=base_dir))
-        print(len(blobs), blobs.count(), blobs.index(0))
+        blobs = list(bucket.list_blobs(prefix=os.path.basename(base_dir)))
+        print(len(blobs))
+        print(blobs[0].name)
 
         # Extract the subdirs labels from the directory structure
-        subdirs = list(set([blob.name.split('/')[0] for blob in blobs if '/' in blob.name]))
+        subdirs = list(set([blob.name.split('/')[1] for blob in blobs]))
         print(subdirs)
 
         for label in subdirs:
-            subdir_blobs = [blob for blob in blobs if blob.name.startswith(label + '/')]
-            print(subdir_blobs.count())
+            subdir_blobs = [blob for blob in blobs if blob.name.startswith(os.path.basename(base_dir) + '/' + label)]
             for blob in subdir_blobs:
                 try:
                     # Download the image as bytes
@@ -106,17 +106,14 @@ def load_images_from_folders(
     """
     X = []
     y = []
-    print('A')
     class_labels = [folder for folder in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, folder))]
     for label in class_labels:
         class_dir = os.path.join(base_dir, label)
         for file_name in os.listdir(class_dir):
             file_path = os.path.join(class_dir, file_name)
             try:
-                print('B', )
                 with Image.open(file_path) as img:
                     img_array = np.array(img)
-                    print('C')
                     #TODO delete line proc_to_bw_resized when refactored
                     img_proc = proc_to_bw_resized(img_array, new_size)
                     X.append(img_proc)
@@ -131,7 +128,6 @@ def load_images_from_folders(
     # Créer un DataFrame à partir de la liste
     df = pd.Series(data, name='image').to_frame()
     df['label'] = y
-    print(df.describe())
 
     # if sample is not 'all', randomly samples X to reduce the size of the df
     # if sample.isdigit() and int(sample) < len(df):

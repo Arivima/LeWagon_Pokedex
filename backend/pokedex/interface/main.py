@@ -19,7 +19,7 @@ from sklearn.model_selection import train_test_split
 
 ## GAN import
     ## data process, aug
-from pokedex.model_logic.model_GAN import gan_process,DiffAugment, rand_brightness, rand_saturation, rand_contrast, rand_translation, rand_cutout
+from pokedex.model_logic.model_GAN import gan_process, DiffAugment, rand_brightness, rand_saturation, rand_contrast, rand_translation, rand_cutout
 
     ##  model , loss , optimizer
 from pokedex.model_logic.model_GAN import initialize_discriminator, initialize_generator

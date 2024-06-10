@@ -1,7 +1,6 @@
 ''' API ENDPOINTS '''
 # IMPORTS
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from pokedex.model_logic.registry import load_model
 from pokedex.params import *
 
@@ -14,21 +13,11 @@ from tensorflow import keras
 # Starting API
 app = FastAPI()
 
-# Allowing all middleware is optional, but good practice for dev purposes
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
-)
-
-
 # MODEL UPLOAD
-app.state.model_15 = load_model(stage='Production', model_type='15')
+app.state.model_15 = load_model(model_type='type')
 print("✅ model 15 loaded\n")
 
-app.state.model_150 = load_model(stage='Production', model_type='150')
+app.state.model_150 = load_model(model_type='name')
 print("✅ model 150 loaded\n")
 
 # app.state.model_GAN = load_model()

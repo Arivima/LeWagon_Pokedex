@@ -8,7 +8,7 @@ from colorama import Fore, Style
 from tensorflow import keras
 
 from pokedex.params import *
-
+from google.cloud import storage
 def save_results(params: dict, metrics: dict, context: str) -> None:
     """
     Persist params & metrics locally on the hard drive at
@@ -16,7 +16,6 @@ def save_results(params: dict, metrics: dict, context: str) -> None:
     "{LOCAL_REGISTRY_PATH}/metrics/{current_timestamp}.pickle"
     """
     print(Fore.BLUE + "\nSaving results..." + Style.RESET_ALL)
-
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     filename = f'{CLASSIFICATION_TYPE}_{WHO}_{context}_{timestamp}.pickle'
     print(filename)
@@ -39,7 +38,7 @@ def save_results(params: dict, metrics: dict, context: str) -> None:
 
 def save_model(context : str, model: keras.Model = None) -> None:
     """
-    Persist trained model locally on the hard drive at f"{LOCAL_REGISTRY_PATH}/models/{timestamp}.h5"
+    Persist trained model locally on the hard drive at f"{LOCAL_REGISTRY_PATH}/models/{timestamp}.keras"
     """
     print(Fore.BLUE + f"\nSaving model ... - context {context}" + Style.RESET_ALL)
 
@@ -51,59 +50,41 @@ def save_model(context : str, model: keras.Model = None) -> None:
     model_path = os.path.join(LOCAL_REGISTRY_PATH, "models", filename)
     model.save(model_path)
 
-    print(f"✅ Model saved locally at {model_path}")
+    print("✅ Model saved locally")
 
     return None
 
 
 def load_model(
-    stage : str = "Production",
-    include_filename : bool = False,
     model_type : str = CLASSIFICATION_TYPE
     ) -> keras.Model:
+    """Load model from google cloud storage, if don't find it load from local
+
+    Args:
+        model_type (str, optional): which model to load. Defaults to CLASSIFICATION_TYPE.
+
+    Returns:
+        keras.Model: model to do your task
     """
-    Return a saved model:
-    - locally (latest one in alphabetical order)
-
-    Return None (but do not Raise) if no model is found
-
-    """
-    if MODEL_TARGET == "local":
-
-        # Get the latest model version name by the timestamp on disk
-        if stage == 'Production':
-            registry_path = PRODUCTION_REGISTRY_PATH
-        elif stage == 'Staging':
-            registry_path = LOCAL_REGISTRY_PATH
-        else:
-            print(f'ERROR : unknown stage {stage}')
-            return None
-
-        print(Fore.BLUE + f"\nLoad latest model from local registry, stage {stage}" + Style.RESET_ALL)
-
-        local_model_directory = os.path.join(registry_path, "models")
-        pattern_filename = f'{model_type}_{WHO}*'
-        local_model_paths = glob.glob(f"{local_model_directory}/{pattern_filename}")
-
-        if not local_model_paths:
-            print(f"No model {model_type} at stage {stage} on local disk")
-            return None
-
-        most_recent_model_path_on_disk = sorted(local_model_paths)[-1]
-
-        latest_model = keras.models.load_model(most_recent_model_path_on_disk)
-
-        print('model :', os.path.basename(most_recent_model_path_on_disk))
-        print("✅ Model loaded from local disk")
-        if include_filename:
-            model_filename = os.path.basename(most_recent_model_path_on_disk)
-            return latest_model, model_filename
-
-        return latest_model
-
-    else:
-        return None
-
+    if MODEL_TARGET == "gcs":
+        try:
+            client = storage.Client()
+            blobs = list(client.get_bucket(BUCKET_NAME).list_blobs(prefix="keras"))
+            for blob in blobs:
+                if CLASSIFICATION_TYPE in blob.name:
+                    model_path_to_save = os.path.join(MODEL_PATH, blob.name)
+                    blob.download_to_filename(model_path_to_save)
+                    model_find = keras.models.load_model(model_path_to_save)
+                    break
+            print("✅ Model loaded from gcs")
+        except:
+            print("can't load from gcs")
+            for model in os.listdir("../backend/pokedex/production_registry/models"):
+                if  CLASSIFICATION_TYPE in model:
+                    model_find = keras.models.load_model(os.path.join("../backend/pokedex/production_registry/modelsmodel"), model)
+                    break
+            print("✅ Model loaded locally")
+    return model_find
 
 
 def load_results(context : str, stage="Production", include_filename=False) -> keras.Model:
@@ -158,7 +139,6 @@ def load_results(context : str, stage="Production", include_filename=False) -> k
 
     print('not in local mode')
     return None
-
 
 
 

@@ -17,6 +17,8 @@ ENV_FILE := .env
 ML_DIR=~/.lewagon/pokedex
 
 reinstall_package:
+	@echo ""
+	@echo "Reinstalling package ..."
 	@pip install --upgrade pip
 	@pip uninstall -y pokedex || :
 	@pip install -e .
@@ -26,11 +28,13 @@ reinstall_package:
 # rm -rf ${ML_DIR}
 
 create_dataset_type :
+	@echo ""
 	@echo "Creating dataset_type..."
 	bash ../scripts/data_pokemon_to_type.sh
 
 reset_local_files:
-	@echo "resetting local staging registries..."
+	@echo ""
+	@echo "Resetting local staging registries..."
 	rm -rf ${ML_DIR}
 	mkdir -p ~/.lewagon/pokedex/data/
 	mkdir ~/.lewagon/pokedex/data/raw
@@ -44,13 +48,16 @@ reset_local_files:
 	mkdir ~/.lewagon/pokedex/gan/output_images
 
 set_up_env:
+	@echo ""
 	@echo "Copying .env from .env.sample ..."
 	@if [ -f .env ]; then \
 		echo ".env already exists, creating backup as .env.bak ..."; \
 		cp .env .env.bak; \
 	fi
 	cp .env.sample .env
+	@echo ""
 	@echo "UPDATE ENV VARIABLES IN .env"
+	@echo ""
 	@echo "Once you are done: make run_15 or make run_150"
 
 start: reinstall_package create_dataset_type reset_local_files set_up_env
@@ -63,6 +70,7 @@ run:
 	direnv exec . python pokedex/interface/main.py
 
 reset_classification_env:
+	@echo ""
 	@echo "Modifying environment variable in $(ENV_FILE)..."
 	@if grep -q "CLASSIFICATION_TYPE=" $(ENV_FILE); then \
 		sed -i 's/CLASSIFICATION_TYPE=.*/CLASSIFICATION_TYPE=$(new_value)/' $(ENV_FILE); \

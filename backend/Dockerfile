@@ -23,4 +23,4 @@ EXPOSE 8000
 # CMD uvicorn pokedex.api.fast:app --host 0.0.0.0
 
 # Deploy to GCP
-CMD uvicorn app_folder.app_file:app --host 0.0.0.0 --port 8080
+CMD uvicorn pokedex.api.fast:app --host 0.0.0.0 --port 8080

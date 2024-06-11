@@ -23,10 +23,6 @@ reinstall_package:
 	@pip uninstall -y pokedex || :
 	@pip install -e .
 
-# additional_packages:
-# 	sudo apt-get update && apt-get install libgl1
-# rm -rf ${ML_DIR}
-
 create_dataset_type :
 	@echo ""
 	@echo "Creating dataset_type..."
@@ -64,6 +60,8 @@ start: reinstall_package create_dataset_type reset_local_files set_up_env
 	direnv allow
 
 
+##### LOCAL ######
+# Always start the project with make start
 
 run:
 	direnv reload
@@ -81,8 +79,6 @@ reset_classification_env:
 
 
 
-# ALL RUN RULES ARE HERE
-# Always start the project with make start
 
 run_15:
 	$(MAKE) reset_classification_env new_value=15
@@ -110,14 +106,33 @@ run_save_model_to_gcs_150:
 	python -c 'from pokedex.model_logic.registry import save_production_model_to_gcs; save_production_model_to_gcs('150')'
 
 
-run_api:
-	uvicorn pokedex.api.fast:app --host 0.0.0.0
-# uvicorn pokedex.api.fast:app --port 8001 --host 0.0.0.0
+run_api_local:
+	uvicorn pokedex.api.fast:app --host 0.0.0.0 --port 8002
 # uvicorn pokedex.api.fast:app --reload
 
 
-docker_build:
-	docker build --tag=$GAR_IMAGE:dev .                                  [🐍 pokemon-env]
+##### DEPLOYMENT ######
+GAR_IMAGE=pokedex
+DOCKER_IMAGE=europe-west9-docker.pkg.dev/pokemon1672/pokedex/pokedex:prod
+GCP_REGION=europe-west9
 
-docker_run:
-	docker run -it $GAR_IMAGE:dev
+docker_build_local:
+	docker build --tag=$(GAR_IMAGE):dev .
+
+docker_run_local:
+	docker run -it $(GAR_IMAGE):dev
+
+docker_build_cloud:
+	docker build -t  $(DOCKER_IMAGE) .
+
+docker_run_cloud:
+	docker run -e PORT=8000 -p 8000:8000 --env-file .env $(DOCKER_IMAGE)
+
+docker_run_cloud_iterative:
+	docker run -it -e PORT=8000 -p 8000:8000 --env-file .env $(DOCKER_IMAGE) bash
+
+docker_push_cloud:
+	docker push $(DOCKER_IMAGE)
+
+docker_deploy_cloud:
+	gcloud run deploy --image $(DOCKER_IMAGE) --memory 2Gi --region $(GCP_REGION) --env-vars-file .env.yaml --port 8000

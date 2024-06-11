@@ -5,14 +5,12 @@ import os
 import pandas as pd
 from PIL import Image
 import numpy as np
-import matplotlib.pyplot as plt
 
 #TODO delete after refactor
 from pokedex.model_logic.preprocessing import proc_to_bw_resized
 
 from pokedex.params import *
 
-import google
 from google.cloud import storage
 from google.cloud.exceptions import NotFound
 from io import BytesIO
@@ -92,7 +90,7 @@ def load_images_from_bucket(
         print(f"✅ Data loaded from bucket {BUCKET_NAME}{base_dir}")
         return df
 
-    except google.cloud.exceptions.NotFound:
+    except NotFound:
         print(f"Bucket {BUCKET_NAME} does not exist.")
 
 def load_images_from_folders(
@@ -137,18 +135,3 @@ def load_images_from_folders(
 
     print(f"✅ Data loaded from {base_dir}")
     return df
-
-
-
-def display_images(df : pd.DataFrame, num_images=10):
-    '''
-    displays a sample of images with associated label from the dataset
-    '''
-    plt.figure(figsize=(15, 15))
-    # Ensure it doesn't try to display more images than available
-    for i in range(min(num_images, len(df))):
-        plt.subplot(1, num_images, i + 1)
-        plt.imshow(df.image.iloc[i])
-        plt.title(df.label.iloc[i])
-        plt.axis("off")
-    plt.show()

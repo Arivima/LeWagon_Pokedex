@@ -116,13 +116,14 @@ def load_model_from_gcs(
         for blob in sorted_blobs:
             if blob.name.startswith(str(model_type) + '_' ):
                 print('gcs\t\t', blob.name)
-                model_path_to_save = os.path.join(GCS_PATH, blob.name)
+                # model_path_to_save = os.path.join(GCS_PATH, blob.name)
+                model_path_to_save = blob.name
                 print('local\t\t', model_path_to_save)
                 blob.download_to_filename(model_path_to_save)
                 model_find = keras.models.load_model(model_path_to_save)
-                break
-        print("✅ Model loaded from gcs")
-        return model_find
+                print("✅ Model loaded from gcs")
+                return model_find
+
     except:
         print("can't load from gcs")
         model_find = load_model_from_local(stage='Production', model_type=model_type)

@@ -248,20 +248,33 @@ def pred(model_type : str = '15') -> np.ndarray:
 
     # make prediction
     y_pred = model.predict(X)
+    print('y_pred', y_pred)
 
     # decode prediction
-    label_decoder = LABELS_TYPE if (str(model_type) == '15') else LABELS_NAME
-    labels_type_dict  = label_decoder
+    labels_dict = LABELS_TYPE if (str(model_type) == '15') else LABELS_NAME
+    print('labels_dict', labels_dict)
+
     predicted_index = np.argmax(y_pred, axis=1)
-    predicted_labels = [labels_type_dict[str(i)] for i in predicted_index]
+    print('predicted_index', predicted_index)
+
+    predicted_labels = [labels_dict[str(i)] for i in predicted_index]
+    print('predicted_labels', labels_dict)
+
+    # all_predictions_with_labels = []
+    # for pred in y_pred:
+    #     for i, prob in enumerate(pred):
+    #         label = labels_dict[str(i)]
+    #         all_predictions_with_labels.append((label, prob))
+    # all_predictions_with_labels = [{labels_dict[str(i)] : prob } for (i, prob) in enumerate(pred) for pred in y_pred]
+    # print('all_predictions_with_labels', all_predictions_with_labels)
 
     # Get the confidence scores for each prediction
-    confidence_scores = np.max(y_pred, axis=1)
+    top_score = np.max(y_pred, axis=1)
 
     # Create a dictionary with predicted labels as keys and confidence scores as values
-    predicted_labels_confidence_dict = [[k, v] for k, v in zip(predicted_labels, confidence_scores)]
+    predicted_labels_confidence_dict = [[k, v] for k, v in zip(predicted_labels, top_score)]
+    print('predicted_labels_confidence_dict', predicted_labels_confidence_dict)
 
-    print(predicted_labels_confidence_dict)
     print("✅ pred() done \n")
     return predicted_labels
 

@@ -83,9 +83,9 @@ def load_images_from_bucket(
         print(df.describe())
 
         # If sample is not 'all', randomly sample X to reduce the size of the df
-        if sample.isdigit() and int(sample) < len(df):
-            df = df.sample(n=int(sample))
-        df = sample_dataframe(df, 300)
+        # if sample.isdigit() and int(sample) < len(df):
+        #     df = df.sample(n=int(sample))
+        # df = sample_dataframe(df, 300)
 
         print(f"✅ Data loaded from bucket {BUCKET_NAME}{base_dir}")
         return df
@@ -130,8 +130,8 @@ def load_images_from_folders(
     # if sample is not 'all', randomly samples X to reduce the size of the df
     # if sample.isdigit() and int(sample) < len(df):
     #     df = df.sample(n=int(sample))
-    if len(df) > 300:
-        df = sample_dataframe(df, 300)
+    # if len(df) > 300:
+    #     df = sample_dataframe(df, 300)
 
     print(f"✅ Data loaded from {base_dir}")
     return df

@@ -28,16 +28,14 @@ from pokedex.model_logic.model_GAN import initialize_gen_optimizer, initialize_d
 from pokedex.model_logic.model_GAN import train_step, train_gan
 
 
-
-
 LABELS_TYPE={"0": "bug", "1": "dragon", "2": "electric", "3": "fighting", "4": "fire", "5": "flying", "6": "ghost", "7": "grass", "8": "ground", "9": "ice", "10": "normal", "11": "poison", "12": "psychic", "13": "rock", "14": "water"}
-LABELS_NAME={"0": "Abra", "1": "Aerodactyl", "2": "Alakazam", "3": "Arbok", "4": "Arcanine", "5": "Articuno", "6": "Beedrill", "7": "Bellsprout", "8": "Blastoise", "9": "Bulbasaur", "10": "Butterfree", "11": "Caterpie", "12": "Chansey", "13": "Charizard", "14": "Charmander", "15": "Charmeleon", "16": "Clefable", "17": "Clefairy", "18": "Cloyster", "19": "Cubone", "20": "Dewgong", "21": "Diglett", "22": "Ditto", "23": "Dodrio", "24": "Doduo", "25": "Dragonair", "26": "Dragonite", "27": "Dratini", "28": "Drowzee", "29": "Dugtrio", "30": "Eevee", "31": "Ekans", "32": "Electabuzz", "33": "Electrode", "34": "Exeggcute", "35": "Exeggutor", "36": "Farfetchd", "37": "Fearow", "38": "Flareon", "39": "Gastly", "40": "Gengar", "41": "Geodude", "42": "Gloom", "43": "Golbat", "44": "Goldeen", "45": "Golduck", "46": "Golem", "47": "Graveler", "48": "Grimer", "49": "Growlithe", "50": "Gyarados", "51": "Haunter", "52": "Hitmonchan", "53": "Hitmonlee", "54": "Horsea", "55": "Hypno", "56": "Ivysaur", "57": "Jigglypuff", "58": "Jolteon", "59": "Jynx", "60": "Kabuto", "61": "Kabutops", "62": "Kadabra", "63": "Kakuna", "64": "Kangaskhan", "65": "Kingler", "66": "Koffing", "67": "Krabby", "68": "Lapras", "69": "Lickitung", "70": "Machamp", "71": "Machoke", "72": "Machop", "73": "Magikarp", "74": "Magmar", "75": "Magnemite", "76": "Magneton", "77": "Mankey", "78": "Marowak", "79": "Meowth", "80": "Metapod", "81": "Mew", "82": "Mewtwo", "83": "Moltres", "84": "MrMime", "85": "Muk", "86": "Nidoking", "87": "Nidoqueen", "88": "Nidorina", "89": "Nidorino", "90": "Ninetales", "91": "Oddish", "92": "Omanyte", "93": "Omastar", "94": "Onix", "95": "Paras", "96": "Parasect", "97": "Persian", "98": "Pidgeot", "99": "Pidgeotto", "100": "Pidgey", "101": "Pikachu", "102": "Pinsir", "103": "Poliwag", "104": "Poliwhirl", "105": "Poliwrath", "106": "Ponyta", "107": "Porygon", "108": "Primeape", "109": "Psyduck", "110": "Raichu", "111": "Rapidash", "112": "Raticate", "113": "Rattata", "114": "Rhydon", "115": "Rhyhorn", "116": "Sandshrew", "117": "Sandslash", "118": "Scyther", "119": "Seadra", "120": "Seaking", "121": "Seel", "122": "Shellder", "123": "Slowbro", "124": "Slowpoke", "125": "Snorlax", "126": "Spearow", "127": "Squirtle", "128": "Starmie", "129": "Staryu", "130": "Tangela", "131": "Tauros", "132": "Tentacool", "133": "Tentacruel", "134": "Vaporeon", "135": "Venomoth", "136": "Venonat", "137": "Venusaur", "138": "Victreebel", "139": "Vileplume", "140": "Voltorb", "141": "Vulpix", "142": "Wartortle", "143": "Weedle", "144": "Weepinbell", "145": "Weezing", "146": "Wigglytuff", "147": "Zapdos", "148": "Zubat"}
+# LABELS_NAME={"0": "Abra", "1": "Aerodactyl", "2": "Alakazam", "3": "Arbok", "4": "Arcanine", "5": "Articuno", "6": "Beedrill", "7": "Bellsprout", "8": "Blastoise", "9": "Bulbasaur", "10": "Butterfree", "11": "Caterpie", "12": "Chansey", "13": "Charizard", "14": "Charmander", "15": "Charmeleon", "16": "Clefable", "17": "Clefairy", "18": "Cloyster", "19": "Cubone", "20": "Dewgong", "21": "Diglett", "22": "Ditto", "23": "Dodrio", "24": "Doduo", "25": "Dragonair", "26": "Dragonite", "27": "Dratini", "28": "Drowzee", "29": "Dugtrio", "30": "Eevee", "31": "Ekans", "32": "Electabuzz", "33": "Electrode", "34": "Exeggcute", "35": "Exeggutor", "36": "Farfetchd", "37": "Fearow", "38": "Flareon", "39": "Gastly", "40": "Gengar", "41": "Geodude", "42": "Gloom", "43": "Golbat", "44": "Goldeen", "45": "Golduck", "46": "Golem", "47": "Graveler", "48": "Grimer", "49": "Growlithe", "50": "Gyarados", "51": "Haunter", "52": "Hitmonchan", "53": "Hitmonlee", "54": "Horsea", "55": "Hypno", "56": "Ivysaur", "57": "Jigglypuff", "58": "Jolteon", "59": "Jynx", "60": "Kabuto", "61": "Kabutops", "62": "Kadabra", "63": "Kakuna", "64": "Kangaskhan", "65": "Kingler", "66": "Koffing", "67": "Krabby", "68": "Lapras", "69": "Lickitung", "70": "Machamp", "71": "Machoke", "72": "Machop", "73": "Magikarp", "74": "Magmar", "75": "Magnemite", "76": "Magneton", "77": "Mankey", "78": "Marowak", "79": "Meowth", "80": "Metapod", "81": "Mew", "82": "Mewtwo", "83": "Moltres", "84": "MrMime", "85": "Muk", "86": "Nidoking", "87": "Nidoqueen", "88": "Nidorina", "89": "Nidorino", "90": "Ninetales", "91": "Oddish", "92": "Omanyte", "93": "Omastar", "94": "Onix", "95": "Paras", "96": "Parasect", "97": "Persian", "98": "Pidgeot", "99": "Pidgeotto", "100": "Pidgey", "101": "Pikachu", "102": "Pinsir", "103": "Poliwag", "104": "Poliwhirl", "105": "Poliwrath", "106": "Ponyta", "107": "Porygon", "108": "Primeape", "109": "Psyduck", "110": "Raichu", "111": "Rapidash", "112": "Raticate", "113": "Rattata", "114": "Rhydon", "115": "Rhyhorn", "116": "Sandshrew", "117": "Sandslash", "118": "Scyther", "119": "Seadra", "120": "Seaking", "121": "Seel", "122": "Shellder", "123": "Slowbro", "124": "Slowpoke", "125": "Snorlax", "126": "Spearow", "127": "Squirtle", "128": "Starmie", "129": "Staryu", "130": "Tangela", "131": "Tauros", "132": "Tentacool", "133": "Tentacruel", "134": "Vaporeon", "135": "Venomoth", "136": "Venonat", "137": "Venusaur", "138": "Victreebel", "139": "Vileplume", "140": "Voltorb", "141": "Vulpix", "142": "Wartortle", "143": "Weedle", "144": "Weepinbell", "145": "Weezing", "146": "Wigglytuff", "147": "Zapdos", "148": "Zubat"}
 
-
+LABELS_NAME={'43': 'Golbat', '6': 'Beedrill', '11': 'Caterpie', '16': 'Clefable', '110': 'Raichu', '117': 'Sandslash', '80': 'Metapod', '28': 'Drowzee', '91': 'Oddish', '13': 'Charizard', '131': 'Tauros', '106': 'Ponyta', '108': 'Primeape', '126': 'Spearow', '77': 'Mankey', '103': 'Poliwag', '67': 'Krabby', '113': 'Rattata', '133': 'Tentacruel', '47': 'Graveler', '66': 'Koffing', '147': 'Zapdos', '5': 'Articuno', '109': 'Psyduck', '7': 'Bellsprout', '68': 'Lapras', '10': 'Butterfree', '145': 'Weezing', '0': 'Abra', '85': 'Muk', '18': 'Cloyster', '107': 'Porygon', '38': 'Flareon', '57': 'Jigglypuff', '112': 'Raticate', '137': 'Venusaur', '20': 'Dewgong', '54': 'Horsea', '114': 'Rhydon', '92': 'Omanyte', '34': 'Exeggcute', '60': 'Kabuto', '22': 'Ditto', '49': 'Growlithe', '81': 'Mew', '33': 'Electrode', '139': 'Vileplume', '120': 'Seaking', '35': 'Exeggutor', '32': 'Electabuzz', '12': 'Chansey', '74': 'Magmar', '51': 'Haunter', '90': 'Ninetales', '17': 'Clefairy', '50': 'Gyarados', '130': 'Tangela', '78': 'Marowak', '125': 'Snorlax', '87': 'Nidoqueen', '52': 'Hitmonchan', '31': 'Ekans', '116': 'Sandshrew', '58': 'Jolteon', '61': 'Kabutops', '69': 'Lickitung', '99': 'Pidgeotto', '122': 'Shellder', '124': 'Slowpoke', '101': 'Pikachu', '105': 'Poliwrath', '37': 'Fearow', '75': 'Magnemite', '53': 'Hitmonlee', '71': 'Machoke', '104': 'Poliwhirl', '76': 'Magneton', '21': 'Diglett', '136': 'Venonat', '63': 'Kakuna', '30': 'Eevee', '56': 'Ivysaur', '24': 'Doduo', '146': 'Wigglytuff', '44': 'Goldeen', '2': 'Alakazam', '128': 'Starmie', '48': 'Grimer', '102': 'Pinsir', '132': 'Tentacool', '82': 'Mewtwo', '23': 'Dodrio', '64': 'Kangaskhan', '4': 'Arcanine', '27': 'Dratini', '1': 'Aerodactyl', '39': 'Gastly', '41': 'Geodude', '73': 'Magikarp', '148': 'Zubat', '95': 'Paras', '70': 'Machamp', '138': 'Victreebel', '142': 'Wartortle', '93': 'Omastar', '79': 'Meowth', '88': 'Nidorina', '9': 'Bulbasaur', '36': 'Farfetchd', '111': 'Rapidash', '121': 'Seel', '8': 'Blastoise', '135': 'Venomoth', '55': 'Hypno', '45': 'Golduck', '86': 'Nidoking', '134': 'Vaporeon', '26': 'Dragonite', '94': 'Onix', '98': 'Pidgeot', '72': 'Machop', '83': 'Moltres', '118': 'Scyther', '84': 'MrMime', '19': 'Cubone', '40': 'Gengar', '65': 'Kingler', '29': 'Dugtrio', '42': 'Gloom', '96': 'Parasect', '97': 'Persian', '46': 'Golem', '119': 'Seadra', '127': 'Squirtle', '89': 'Nidorino', '14': 'Charmander', '59': 'Jynx', '25': 'Dragonair', '3': 'Arbok', '143': 'Weedle', '100': 'Pidgey', '62': 'Kadabra', '115': 'Rhyhorn', '144': 'Weepinbell', '15': 'Charmeleon', '129': 'Staryu', '140': 'Voltorb', '123': 'Slowbro', '141': 'Vulpix'}
 
 
 def preprocess(
-    classification_type : str = CLASSIFICATION_TYPE, # '15 types' or '150 pokemon'
+    classification_type : str = CLASSIFICATION_TYPE,
     sample :str = '300',
     img_new_size : tuple = (128, 128),
     ) -> tuple:
@@ -64,7 +62,7 @@ def preprocess(
             new_size=img_new_size
             )
     else:
-        raise ValueError("classification_type should be '15 types' or '150 pokemon'")
+        raise ValueError("classification_type should be '15' or '150'")
 
     # display_images(dataset) # debug
     print('dataset.shape', dataset.shape)
@@ -220,13 +218,24 @@ def evaluate(
 
     return metrics_dict["accuracy"]
 
+def pred_both() -> np.ndarray:
+    ''' predicts both 15 and 150 '''
+    final_dict_15, df_15 = pred('15')
+    final_dict_150, df_150 = pred('150')
+    sorted_dict_15 = dict(sorted(final_dict_15.items(), key=lambda item: item[1], reverse=True))
+    sorted_dict_150 = dict(sorted(final_dict_150.items(), key=lambda item: item[1], reverse=True))
+    print(sorted_dict_15)
+    print(sorted_dict_150)
 
+    print(df_15.shape, df_15.columns) # (92, 3)
+    print(df_150.shape, df_150.columns) # (2, 3)
+    merged_df = pd.merge(df_15, df_150, on='i', how='inner', suffixes=('_15', '_150'))
 
-def pred(model_type : str = '15') -> np.ndarray:
-    """
-    Make a prediction using the latest trained model
-    """
-    print("\n⭐️ Use case: predict")
+    print(merged_df.shape, merged_df.columns) #(1, 5)
+    return final_dict_15, final_dict_150
+
+def load_img():
+    ''' loading images from etst folder and return a df'''
     # Fetch images to predict
     images_path = os.path.join('..', 'all_prediction_images')
     img_new_size = (128, 128)
@@ -240,6 +249,32 @@ def pred(model_type : str = '15') -> np.ndarray:
     # define features
     X = np.stack(images['image'].values)
     print('X', X.shape)
+    return X
+
+
+import pandas as pd
+
+def pred(model_type : str = '15') -> np.ndarray:
+    """
+    Make a prediction using the latest trained model
+    """
+    print(f"\n⭐️ Use case: predict {model_type}")
+    # X = load_img()
+    # Load raw data
+    if str(model_type) == '15':
+        dataset = load_images_from_folders(DATASET_TYPE_PATH)
+    elif str(model_type) == '150':
+        dataset =  load_images_from_folders(DATASET_NAME_PATH)
+    else:
+        raise ValueError("model_type should be '15' or '150'")
+
+    # display_images(dataset) # debug
+    print('dataset.shape', dataset.shape)
+
+    # define features and target
+    X = np.stack(dataset['image'].values)
+    # print('X', type(X), X.shape, X[0].shape)
+    y = dataset[["label"]].values
     print("✅ images loaded and processed\n")
 
     # load model in production
@@ -248,17 +283,17 @@ def pred(model_type : str = '15') -> np.ndarray:
 
     # make prediction
     y_pred = model.predict(X)
-    print('y_pred', y_pred)
+    # print('y_pred', y_pred)
 
     # decode prediction
     labels_dict = LABELS_TYPE if (str(model_type) == '15') else LABELS_NAME
-    print('labels_dict', labels_dict)
+    # print('labels_dict', labels_dict)
 
     predicted_index = np.argmax(y_pred, axis=1)
-    print('predicted_index', predicted_index)
+    # print('predicted_index', predicted_index)
 
     predicted_labels = [labels_dict[str(i)] for i in predicted_index]
-    print('predicted_labels', labels_dict)
+    # print('predicted_labels', predicted_labels)
 
     # all_predictions_with_labels = []
     # for pred in y_pred:
@@ -273,10 +308,35 @@ def pred(model_type : str = '15') -> np.ndarray:
 
     # Create a dictionary with predicted labels as keys and confidence scores as values
     predicted_labels_confidence_dict = [[k, v] for k, v in zip(predicted_labels, top_score)]
-    print('predicted_labels_confidence_dict', predicted_labels_confidence_dict)
+    # print('predicted_labels_confidence_dict', predicted_labels_confidence_dict)
+
+
+    final_dict = {}
+    for entry in predicted_labels_confidence_dict:
+        if entry[0] in final_dict.keys():
+            final_dict[entry[0]] += 1
+        else:
+            final_dict[entry[0]] = 1
+
+    # print(final_dict)
+    good_predictions = pd.DataFrame(columns=['i', 'X', 'y'])
+    # print(type(X), type(y), type(predicted_labels))
+    # <class 'numpy.ndarray'> <class 'numpy.ndarray'> <class 'list'>
+    # print(X.shape, y.shape, len(predicted_labels))
+    # (300, 128, 128, 3) (300, 1) 300
+
+    predicted_labels = np.array(predicted_labels)
+    y = y.flatten()
+
+    # get a np array with all images for which the prediction is the same as label
+    for i in range(len(predicted_labels)):
+        if y[i] == predicted_labels[i]:
+            # print(i, y[i], predicted_labels[i])
+            good_predictions = good_predictions.append({'i': i, 'X': X[i], 'y': y[i]}, ignore_index=True)
+    print(good_predictions.shape)
 
     print("✅ pred() done \n")
-    return predicted_labels
+    return final_dict, good_predictions
 
 
 

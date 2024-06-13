@@ -92,6 +92,9 @@ run_GAN:
 	$(MAKE) reset_classification_env new_value=GAN
 	$(MAKE) run
 
+run_pred:
+	python -c 'from pokedex.interface.main import pred_both; pred_both()'
+
 run_pred_15:
 	python -c 'from pokedex.interface.main import pred; pred('15')'
 

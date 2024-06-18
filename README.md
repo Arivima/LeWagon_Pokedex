@@ -30,6 +30,23 @@ If you only want to test for the names :
 ```
 make run_test_150
 ```
+## Predictions
+
+!!! PUT any images you want to test in the repository all_prediction_images/images !!!
+
+To predict them :
+```
+make pred_test
+```
+If you only want to predict for the types :
+```
+make pred_test_15
+```
+If you only want to predict for the names :
+```
+make pred_test_150
+```
+
 ## Api
 To run locally the api :
 ```

@@ -3,7 +3,7 @@ all_data_name/
 all_data_type/
 all_data_type_cleaned/
 
-notebooks/
+# notebooks/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

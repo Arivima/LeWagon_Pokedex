@@ -1,20 +1,24 @@
+PYTHON_VERSION := 3.10.6
+ENV_NAME := pokemon-env
+ENV_FILE := .env
+.DEFAULT_GOAL := default
+ML_DIR=~/.lewagon/pokedex
+
 #################### LOCAL ###################
+
+#################### SET-UP ###################
+connect:
+	@printf $(BOLDCYAN)"Makefile: Connecting team git repositories\n"$(RESET)
+	./scripts/git_connect_repo.sh
+
 install_dependencies:
 	pip install --upgrade pip
 	pip install -r requirements.txt
 	pip install -e .
 
-
 start_env:
-	pyenv virtualenv 3.10.6 python-env
-	pyenv local python-env
-
-
-ENV_FILE := .env
-.DEFAULT_GOAL := default
-
-#################### PACKAGE ACTIONS ###################
-ML_DIR=~/.lewagon/pokedex
+	pyenv virtualenv $(PYTHON_VERSION) $(ENV_NAME)
+	pyenv local $(ENV_NAME)
 
 reinstall_package:
 	@echo ""
@@ -57,10 +61,10 @@ set_up_env:
 	@echo "Once you are done: make run_pred | run_api_local "
 
 
-##### LOCAL ######
+#################### PACKAGE ACTIONS ###################
 # Always start the project with make start
 
-start: reinstall_package create_dataset_type reset_local_files set_up_env
+start: start_env reinstall_package create_dataset_type reset_local_files set_up_env
 	direnv allow
 
 
@@ -93,6 +97,19 @@ run_GAN:
 	$(MAKE) reset_classification_env new_value=GAN
 	$(MAKE) run
 
+
+
+run_test:
+	python -c 'from pokedex.interface.main import pred_both; pred_both(test=True)'
+
+run_test_15:
+	python -c 'from pokedex.interface.main import pred; pred('15', test=True)'
+
+run_test_150:
+	python -c 'from pokedex.interface.main import pred; pred('150', test=True)'
+
+
+
 run_pred:
 	python -c 'from pokedex.interface.main import pred_both; pred_both()'
 
@@ -103,6 +120,13 @@ run_pred_150:
 	python -c 'from pokedex.interface.main import pred; pred('150')'
 
 
+
+run_api_local:
+	uvicorn pokedex.api.fast:app --host 0.0.0.0 --port 8002
+# uvicorn pokedex.api.fast:app --reload
+
+
+
 run_save_model_to_gcs_15:
 	python -c 'from pokedex.model_logic.registry import save_production_model_to_gcs; save_production_model_to_gcs('15')'
 
@@ -110,9 +134,6 @@ run_save_model_to_gcs_150:
 	python -c 'from pokedex.model_logic.registry import save_production_model_to_gcs; save_production_model_to_gcs('150')'
 
 
-run_api_local:
-	uvicorn pokedex.api.fast:app --host 0.0.0.0 --port 8002
-# uvicorn pokedex.api.fast:app --reload
 
 
 ##### DEPLOYMENT ######

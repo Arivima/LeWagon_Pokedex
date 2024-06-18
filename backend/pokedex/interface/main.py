@@ -218,10 +218,10 @@ def evaluate(
 
     return metrics_dict["accuracy"]
 
-def pred_both() -> np.ndarray:
+def pred_both(test=False) -> np.ndarray:
     ''' predicts both 15 and 150 '''
-    final_dict_15, df_15 = pred('15')
-    final_dict_150, df_150 = pred('150')
+    final_dict_15, df_15 = pred('15', test=test)
+    final_dict_150, df_150 = pred('150', test=test)
     sorted_dict_15 = dict(sorted(final_dict_15.items(), key=lambda item: item[1], reverse=True))
     sorted_dict_150 = dict(sorted(final_dict_150.items(), key=lambda item: item[1], reverse=True))
     print(sorted_dict_15)
@@ -234,38 +234,24 @@ def pred_both() -> np.ndarray:
     print(merged_df.shape, merged_df.columns) #(1, 5)
     return final_dict_15, final_dict_150
 
-def load_img():
-    ''' loading images from etst folder and return a df'''
-    # Fetch images to predict
-    images_path = os.path.join('..', 'all_prediction_images')
-    img_new_size = (128, 128)
-    images = load_images_from_folders(
-        images_path,
-        sample='all',
-        new_size=img_new_size
-        )
-    print('images.shape', images.shape)
-
-    # define features
-    X = np.stack(images['image'].values)
-    print('X', X.shape)
-    return X
-
 
 import pandas as pd
 
-def pred(model_type : str = '15') -> np.ndarray:
+def pred(model_type : str = '15', test=False) -> np.ndarray:
     """
     Make a prediction using the latest trained model
     """
     print(f"\n⭐️ Use case: predict {model_type}")
-    # Load raw data
-    if str(model_type) == '15':
-        dataset = load_images_from_folders(DATASET_TYPE_PATH)
-    elif str(model_type) == '150':
-        dataset =  load_images_from_folders(DATASET_NAME_PATH)
+    if test is False:
+        images_path = os.path.join('..', 'all_prediction_images')
+        dataset = load_images_from_folders(images_path)
     else:
-        raise ValueError("model_type should be '15' or '150'")
+        if str(model_type) == '15':
+            dataset = load_images_from_folders(DATASET_TYPE_PATH)
+        elif str(model_type) == '150':
+            dataset =  load_images_from_folders(DATASET_NAME_PATH)
+        else:
+            raise ValueError("model_type should be '15' or '150'")
 
     # display_images(dataset) # debug
     print('dataset.shape', dataset.shape)

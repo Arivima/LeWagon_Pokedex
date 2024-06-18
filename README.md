@@ -47,6 +47,18 @@ If you only want to predict for the names :
 make run_pred_150
 ```
 
+## Generation
+
+To generation this kind of images :
+
+![Example of generated fakemon :](output_gan/Example/Example_gan.jpeg)
+
+You can use this command :
+
+```
+make run_generate
+```
+
 ## Api
 To run locally the api :
 ```

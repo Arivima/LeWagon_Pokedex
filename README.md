@@ -66,7 +66,7 @@ make run_pred_150
 
 ## Generation
 
-To generation this kind of images :
+To generate this kind of images :
 
 ![Example of generated fakemon :](output_gan/Example/Example_gan.jpeg)
 

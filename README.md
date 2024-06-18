@@ -13,7 +13,7 @@ The run the installation :
 cd backend
 make start
 ```
-!!! Then you need to modify in file /backend/.env the variable WHO with your name !!!
+⚠️ Then you need to modify in file /backend/.env the variable WHO with your name ⚠️
 
 ## Test
 
@@ -32,7 +32,7 @@ make run_test_150
 ```
 ## Predictions
 
-!!! PUT any images you want to test in the repository all_prediction_images/images !!!
+⚠️ PUT any images you want to test in the repository all_prediction_images/images ⚠️
 
 To predict them :
 ```
@@ -58,7 +58,7 @@ You can use this command :
 ```
 make run_generate
 ```
-
+The image will be in the repository named output_gan
 ## Api
 To run locally the api :
 ```

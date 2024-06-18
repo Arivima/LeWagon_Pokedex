@@ -19,6 +19,8 @@
 
 This project was done at le Wagon in two weeks, during the Data Science Bootcamp. With this project you can classify by types and names the 151 first pocket monster (A.K.A Pokémon), thanks to a CNN model. But that's not it ! You can also genrate new one thanks to a GAN model.
 
+To test the app, go on this website : https://pokemon-generator-1672.streamlit.app/
+
 ## Installation
 First let's clone the repository :
 ```

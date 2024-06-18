@@ -84,15 +84,17 @@ reset_classification_env:
 
 
 
-
+# should only be done on machine with big computing power
 run_15:
 	$(MAKE) reset_classification_env new_value=15
 	$(MAKE) run
 
+# should only be done on machine with big computing power
 run_150:
 	$(MAKE) reset_classification_env new_value=150
 	$(MAKE) run
 
+# should only be done on machine with big computing power
 run_GAN:
 	$(MAKE) reset_classification_env new_value=GAN
 	$(MAKE) run
@@ -118,6 +120,10 @@ run_pred_15:
 
 run_pred_150:
 	python -c 'from pokedex.interface.main import pred; pred('150')'
+
+
+run_generate:
+	python -c 'from pokedex.interface.main import generate; generate()'
 
 
 

@@ -36,15 +36,15 @@ make run_test_150
 
 To predict them :
 ```
-make pred_test
+make run_pred
 ```
 If you only want to predict for the types :
 ```
-make pred_test_15
+make run_pred_15
 ```
 If you only want to predict for the names :
 ```
-make pred_test_150
+make run_pred_150
 ```
 
 ## Api

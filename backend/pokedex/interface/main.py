@@ -4,6 +4,10 @@ import os
 import numpy as np
 import tensorflow as tf
 from colorama import Fore, Style
+from tensorflow import random
+import tempfile
+import matplotlib.pyplot as plt
+import tensorflow.keras as keras
 
 ## Classification import
 from pokedex.params import *
@@ -335,6 +339,49 @@ def pred(model_type : str = '15', test=False) -> np.ndarray:
     return final_dict, df_good_pred
 
 
+def generate():
+    """
+    Generate new images of Pokemons
+    """
+    print("\n⭐️ Use case : generate")
+    # load model in production
+    model = load_model_from_gcs(model_type="GAN")
+    print('model', "GAN", model.summary())
+    print("✅ model loaded\n")
+
+    # generating images
+    latent_dim = 100
+    seed = random.normal([25, latent_dim])
+    generated_images = model(seed)
+
+    # rescaling images to [0, 255]
+    generated_images = (generated_images * 255).numpy()
+
+    # creating a temporary file to save the image
+    output_dir = os.path.join(os.getcwd(), '..', 'output_gan')
+    os.makedirs(output_dir, exist_ok=True)
+    print(output_dir)
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".jpeg") as tmpfile:
+        print('Saving image in tmpfile')
+        plt.figure(figsize=(10, 10))
+        dim = (5, 5)
+        for i in range(generated_images.shape[0]):
+            plt.subplot(dim[0], dim[1], i+1)
+            img = keras.preprocessing.image.array_to_img(generated_images[i])
+            plt.imshow(img)
+            plt.xticks([])
+            plt.yticks([])
+        plt.tight_layout()
+        plt.savefig(tmpfile.name)
+        output_file_path = os.path.join(output_dir, os.path.basename(tmpfile.name))
+        print(output_file_path)
+        plt.savefig(output_file_path)
+        print(f"Gan generated image saved at {output_file_path}")
+        plt.close()
+
+        # return the path of the temporary file as a response
+        return None
 
 
 

@@ -1,4 +1,5 @@
 # Pokedex_project_V1.672 at Le Wagon
+  <p align="center">
   <a href="#"><img src="https://img.shields.io/badge/Python-14354C?style=for-the-badge&logo=python&logoColor=white" alt="python" height="26" /></a>
   <a href="#"><img src="https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white" alt="numpy" height="26" /></a>
   <a href="#"><img src="https://img.shields.io/badge/pandas-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white" alt="pandas" height="26" /></a>
@@ -14,6 +15,7 @@
   <br>
   <a href="#"><img src="https://img.shields.io/badge/fastapi-05978a.svg?style=for-the-badge&logo=fastapi&logoColor=white" alt="fastapi" height="26" /></a>
   <a href="#"><img src="https://img.shields.io/badge/uvicorn-pink.svg?style=for-the-badge&logo=gunicorn&logoColor=purple" alt="uvicorn" height="26" /></a>
+  </p>
 
 This project was done at le Wagon in two weeks, during the Data Science Bootcamp. With this project you can classify by types and names the 151 first pocket monster (A.K.A Pokémon), thanks to a CNN model. But that's not it ! You can also genrate new one thanks to a GAN model.
 

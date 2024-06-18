@@ -6,6 +6,7 @@
   <br>
   <a href="#"><img src="https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white" alt="tf" height="26" /></a>
   <a href="#"><img src="https://img.shields.io/badge/Keras-%23D00000.svg?style=for-the-badge&logo=Keras&logoColor=white" alt="keras" height="26" /></a>
+  <a href="#"><img src="https://img.shields.io/badge/scikit--learn-%23F7931E.svg?style=for-the-badge&logo=scikit-learn&logoColor=white" alt="sklearn" height="26" /></a>
   <br>
   <a href="#"><img src="https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white" alt="gcp" height="26" /></a>
   <a href="#"><img src="https://img.shields.io/badge/Docker-0092e7.svg?style=for-the-badge&logo=docker&logoColor=white" alt="docker" height="26" /></a>

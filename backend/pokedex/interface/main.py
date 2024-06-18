@@ -259,7 +259,6 @@ def pred(model_type : str = '15') -> np.ndarray:
     Make a prediction using the latest trained model
     """
     print(f"\n⭐️ Use case: predict {model_type}")
-    # X = load_img()
     # Load raw data
     if str(model_type) == '15':
         dataset = load_images_from_folders(DATASET_TYPE_PATH)
@@ -273,13 +272,20 @@ def pred(model_type : str = '15') -> np.ndarray:
 
     # define features and target
     X = np.stack(dataset['image'].values)
-    # print('X', type(X), X.shape, X[0].shape)
+    print('X', type(X), X.shape, X[0].shape)
     y = dataset[["label"]].values
+    print(y.shape)
+    y_cat = encode_target(y)
     print("✅ images loaded and processed\n")
 
     # load model in production
     model = load_model_from_gcs(model_type=model_type)
+    print('model', model_type, model.summary())
     print("✅ model loaded\n")
+
+    # Evaluate model
+    # metrics_dict = evaluate_model(model=model, X=X, y=y_cat)
+    # print('metrics evaluate', metrics_dict)
 
     # make prediction
     y_pred = model.predict(X)
@@ -319,7 +325,7 @@ def pred(model_type : str = '15') -> np.ndarray:
             final_dict[entry[0]] = 1
 
     # print(final_dict)
-    good_predictions = pd.DataFrame(columns=['i', 'X', 'y'])
+    # good_predictions = pd.DataFrame(columns=['i', 'y'])
     # print(type(X), type(y), type(predicted_labels))
     # <class 'numpy.ndarray'> <class 'numpy.ndarray'> <class 'list'>
     # print(X.shape, y.shape, len(predicted_labels))
@@ -329,14 +335,18 @@ def pred(model_type : str = '15') -> np.ndarray:
     y = y.flatten()
 
     # get a np array with all images for which the prediction is the same as label
-    for i in range(len(predicted_labels)):
+    good_predictions = []
+    for i, _ in enumerate(predicted_labels):
         if y[i] == predicted_labels[i]:
             # print(i, y[i], predicted_labels[i])
-            good_predictions = good_predictions.append({'i': i, 'X': X[i], 'y': y[i]}, ignore_index=True)
-    print(good_predictions.shape)
+            good_predictions.append([i, y[i]])
+            # good_predictions = pd.concat([good_predictions, pd.DataFrame.from_dict({'i': i, 'y': y[i]})], ignore_index=True)
+
+    df_good_pred = pd.DataFrame(good_predictions, columns=['i', 'label'])
+    print(df_good_pred.shape)
 
     print("✅ pred() done \n")
-    return final_dict, good_predictions
+    return final_dict, df_good_pred
 
 
 

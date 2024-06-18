@@ -1,3 +1,0 @@
-# Backend
-## api
-## pokedex package

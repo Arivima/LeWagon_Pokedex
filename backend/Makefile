@@ -54,14 +54,15 @@ set_up_env:
 	@echo ""
 	@echo "UPDATE ENV VARIABLES IN .env"
 	@echo ""
-	@echo "Once you are done: make run_15 or make run_150"
-
-start: reinstall_package create_dataset_type reset_local_files set_up_env
-	direnv allow
+	@echo "Once you are done: make run_pred | run_api_local "
 
 
 ##### LOCAL ######
 # Always start the project with make start
+
+start: reinstall_package create_dataset_type reset_local_files set_up_env
+	direnv allow
+
 
 run:
 	direnv reload

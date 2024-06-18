@@ -115,12 +115,18 @@ def load_model_from_gcs(
 
         for blob in sorted_blobs:
             if blob.name.startswith(str(model_type) + '_' ):
+
                 print('gcs\t\t', blob.name)
                 # model_path_to_save = os.path.join(GCS_PATH, blob.name)
                 model_path_to_save = blob.name
                 print('local\t\t', model_path_to_save)
                 blob.download_to_filename(model_path_to_save)
-                model_find = keras.models.load_model(model_path_to_save)
+
+                if blob.name.endswith('.pickle'):
+                    model_find = pickle.load(model_path_to_save)
+                else:
+                    model_find = keras.models.load_model(model_path_to_save)
+
                 print("✅ Model loaded from gcs")
                 return model_find
 
@@ -283,6 +289,7 @@ def compare_vs_production():
 
             print(Fore.BLUE + "\nStaging current model to production ..."+ Style.RESET_ALL)
             registry_path = os.path.join(os.getcwd(), 'pokedex', 'production_registry')
+            os.makedirs(registry_path, exist_ok=True)
 
             # Delete content of production subfolders (metrics, params, models)
             delete_production_folders_content(registry_path)
@@ -290,12 +297,14 @@ def compare_vs_production():
             # Copy last run (params, metrics, and model) to production stage
             # Save params locally
             params_path = os.path.join(registry_path, "params", params_filename)
+            os.makedirs(params_path, exist_ok=True)
             print('Copying last run params to ', params_path)
             with open(params_path, "wb") as file:
                 pickle.dump(last_params, file)
 
             # Save metrics locally
             metrics_path = os.path.join(registry_path, "metrics", metrics_filename)
+            os.makedirs(metrics_path, exist_ok=True)
             print('Copying last run metrics to ', metrics_path)
             with open(metrics_path, "wb") as file:
                 pickle.dump(last_metrics, file)
@@ -303,6 +312,7 @@ def compare_vs_production():
             # Save model locally
             model, model_filename = load_model_from_local(stage='Staging', model_type=CLASSIFICATION_TYPE, include_filename=True)
             model_path = os.path.join(registry_path, "models", model_filename)
+            os.makedirs(os.path.join(registry_path, "models"), exist_ok=True)
             print('Copying last run model to ', model_path)
             model.save(model_path)
             print("\n✅ Model, params, and metrics staged to production")

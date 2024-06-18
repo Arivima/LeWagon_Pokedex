@@ -54,7 +54,6 @@ def force_reload():
     return {"status": "OK!"}
 
 
-
 @app.post('/predict')
 async def predict(img: UploadFile=File(...)):
     '''
@@ -93,7 +92,6 @@ async def predict(img: UploadFile=File(...)):
     return response
 
 
-
 @app.get("/generate")
 async def generate():
     """
@@ -102,11 +100,6 @@ async def generate():
     print("\n⭐️ API call : generate")
     # Load model
     model = load_model(model_type='GAN', app_state=app.state, must_raise=True)
-
-    # compiling model
-    # print(model.built)
-    # if not model.built:
-    # model.compile()
 
     # generating images
     latent_dim = 100
@@ -143,10 +136,6 @@ async def generate():
         return FileResponse(tmpfile.name)
 
 
-
-
-
-
 @app.post('/predict_type')
 async def predict_type(img: UploadFile=File(...)):
     '''
@@ -166,6 +155,7 @@ async def predict_type(img: UploadFile=File(...)):
     response = decode_pred(predictions=predictions, decoder=LABELS_TYPE)
     print("✅ predict_type done \n")
     return response
+
 
 @app.post('/predict_name')
 async def predict_name(img: UploadFile=File(...)):

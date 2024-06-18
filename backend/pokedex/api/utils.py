@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 from io import BytesIO
+# from pokedex.model_logic.preprocessing import proc_to_bw_resized
 
 def load_model(model_type, app_state, must_raise : bool = False, force_reload : bool = False):
     '''

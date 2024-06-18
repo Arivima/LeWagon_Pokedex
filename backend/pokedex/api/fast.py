@@ -110,7 +110,7 @@ async def generate():
     generated_images = (generated_images * 255).numpy()
 
     # creating a temporary file to save the image
-    output_dir = os.path.join(os.getcwd(), 'pokedex', 'output_gan')
+    output_dir = os.path.join(os.getcwd(), '..', 'output_gan')
     os.makedirs(output_dir, exist_ok=True)
     print(output_dir)
 

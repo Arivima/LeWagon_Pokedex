@@ -13,15 +13,13 @@ from keras.layers import Conv2D,Dropout,Dense,Flatten,Conv2DTranspose,BatchNorma
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-# from zipfile import ZipFile
-# import imageio
 from tqdm import tqdm
-# import time
-
-
 
 
 def DiffAugment(x, policy='', channels_first=False):
+    """
+    Function used to apply augmentation to the images
+    """
     if policy:
         if channels_first:
             x = tf.transpose(x, [0, 2, 3, 1])
@@ -34,12 +32,18 @@ def DiffAugment(x, policy='', channels_first=False):
 
 
 def rand_brightness(x):
+    """
+    Function to randomly change the brightness of the image
+    """
     magnitude = tf.random.uniform([tf.shape(x)[0], 1, 1, 1]) - 0.5
     x = x + magnitude
     return x
 
 
 def rand_saturation(x):
+    """
+    Function to randomly change the saturation of the image
+    """
     magnitude = tf.random.uniform([tf.shape(x)[0], 1, 1, 1]) * 2
     x_mean = tf.reduce_mean(x, axis=3, keepdims=True)
     x = (x - x_mean) * magnitude + x_mean
@@ -47,6 +51,9 @@ def rand_saturation(x):
 
 
 def rand_contrast(x):
+    """
+    Function to randomly change the contrast of the image
+    """
     magnitude = tf.random.uniform([tf.shape(x)[0], 1, 1, 1]) + 0.5
     x_mean = tf.reduce_mean(x, axis=[1, 2, 3], keepdims=True)
     x = (x - x_mean) * magnitude + x_mean
@@ -54,6 +61,9 @@ def rand_contrast(x):
 
 
 def rand_translation(x, ratio=0.125):
+    """
+    Function to apply a random translation to the image
+    """
     batch_size = tf.shape(x)[0]
     image_size = tf.shape(x)[1:3]
     shift = tf.cast(tf.cast(image_size, tf.float32) * ratio + 0.5, tf.int32)
@@ -70,6 +80,9 @@ def rand_translation(x, ratio=0.125):
 
 
 def rand_cutout(x, ratio=0.5):
+    """
+    Function to add a random black square to the image
+    """
     batch_size = tf.shape(x)[0]
     image_size = tf.shape(x)[1:3]
     cutout_size = tf.cast(tf.cast(image_size, tf.float32) * ratio + 0.5, tf.int32)
@@ -101,24 +114,25 @@ AUGMENT_FNS = {
 }
 
 
-# tf.keras.utils.set_random_seed(7)
-# batch_size = 32
-# path = "/kaggle/input/all-data-pokemon/all_data_name"
-# trained_models_folder = "/kaggle/working/models"
-# generated_images_folder = "/kaggle/working/images"
-
 
 ##########################################################
+# Preprocessing the data for the GAN:
 def gan_process(path,batch_size):
+    """
+    Preprocessing the data for the GAN (resizing and normalizing)
+    """
     dataset = preprocessing.image_dataset_from_directory(
         path, label_mode=None, image_size=(128, 128), batch_size=batch_size
     )
     dataset = dataset.map(lambda x: (x - 127.5) / 127.5)
     return dataset
 
-# dataset = gan_process(path)
-
+##########################################################
+# Initialize the models and the optimizers:
 def initialize_discriminator():
+    """
+    Initialize the discriminator model
+    """
     discriminator = Sequential(
     [
         tf.keras.Input(shape=(128, 128, 3)),
@@ -159,6 +173,9 @@ def initialize_discriminator():
 
 
 def initialize_generator(latent_dim = 100):
+    """
+    Initialize the generator model
+    """
     generator = tf.keras.Sequential(
     [
         tf.keras.Input(shape=(latent_dim,)),
@@ -197,35 +214,47 @@ def initialize_generator(latent_dim = 100):
     return generator
 
 
-# random_noise = tf.random.normal([1, latent_dim])
-# generated_image = generator(random_noise, training=False)
-# plt.imshow(generated_image[0])
-# plt.show()
+def initialize_gen_optimizer():
+    """
+    Initialize the generator optimizer
+    """
+    generator_optimizer = tf.keras.optimizers.Adam(0.0002, beta_1=0.5)
+    return generator_optimizer
+def initialize_disc_optimizer():
+    """"
+    Initialize the discriminator optimizer
+    """
+    discriminator_optimizer = tf.keras.optimizers.Adam(0.0002, beta_1=0.5)
+    return discriminator_optimizer
 
-
-# decision = discriminator(generated_image)
-# print('decision', decision)
-# binary_cross_entropy = tf.keras.losses.BinaryCrossentropy()
+##########################################################
+# Define the loss functions:
 
 def generator_loss(label, fake_output):
+    """
+    Function use to calculate the generator loss
+    """
     binary_cross_entropy = tf.keras.losses.BinaryCrossentropy()
     gen_loss = binary_cross_entropy(label, fake_output)
     return gen_loss
 
 def discriminator_loss(label, output):
+    """
+    Function use to calculate the discriminator loss
+    """
     binary_cross_entropy = tf.keras.losses.BinaryCrossentropy()
     disc_loss = binary_cross_entropy(label, output)
     return disc_loss
 
-def initialize_gen_optimizer():
-    generator_optimizer = tf.keras.optimizers.Adam(0.0002, beta_1=0.5)
-    return generator_optimizer
-def initialize_disc_optimizer():
-    discriminator_optimizer = tf.keras.optimizers.Adam(0.0002, beta_1=0.5)
-    return discriminator_optimizer
+
+##########################################################
+# Training :
 
 @tf.function
 def train_step(images,generator,discriminator,latent_dim,batch_size, discriminator_optimizer, generator_optimizer):
+    """
+    Function used to train the GAN model each epoch. It returns the loss of the discriminator and the generator
+    """
     noise = tf.random.normal([batch_size, latent_dim])
     images = DiffAugment(images, policy='color,translation,cutout')
 
@@ -260,11 +289,11 @@ def train_step(images,generator,discriminator,latent_dim,batch_size, discriminat
 
     return disc_loss1 + disc_loss2, gen_loss
 
-# latent_dim =100
-# seed = tf.random.normal([25, latent_dim])
-# disc_losses = []
-# gen_losses = []
+
 def train_gan(dataset, epochs,trained_models_folder, generated_images_folder,seed,batch_size,latent_dim,AUGMENT_FNS):
+    """
+    Function used to train the GAN model for a certain number of epochs
+    """
     generator = initialize_generator()
     discriminator = initialize_discriminator()
     generate_and_save_images(generator, 0, seed, generated_images_folder)
@@ -297,6 +326,9 @@ def train_gan(dataset, epochs,trained_models_folder, generated_images_folder,see
 
 
 def generate_and_save_images(model, epoch, seed, generated_images_folder, dim =(5, 5), figsize=(5, 5)):
+    """
+    Function used to generate and save images
+    """
     generated_images = model(seed)
     generated_images *= 255
     generated_images.numpy()
@@ -310,15 +342,3 @@ def generate_and_save_images(model, epoch, seed, generated_images_folder, dim =(
     plt.tight_layout()
     plt.savefig(os.path.join(generated_images_folder,f'generated_image_epoch_{epoch}.png'))
     plt.close()
-
-
-# train_gan(dataset,1000)
-
-# plt.figure()
-# plt.plot(disc_losses, label='Discriminator Loss')
-# plt.plot(gen_losses, label='Generator Loss')
-# plt.xlabel('Epochs')
-# plt.ylabel('Loss')
-# plt.legend()
-# plt.savefig(generated_images_folder + 'losses.png')
-# plt.close()

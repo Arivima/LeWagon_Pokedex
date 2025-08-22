@@ -1,4 +1,4 @@
-# Pokedex_project_V1.672 at Le Wagon
+# Pokedex_project_V1.672  @ Le Wagon
   <p align="center">
   <a href="#"><img src="https://img.shields.io/badge/Python-14354C?style=for-the-badge&logo=python&logoColor=white" alt="python" height="26" /></a>
   <a href="#"><img src="https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white" alt="numpy" height="26" /></a>
@@ -17,7 +17,7 @@
   <a href="#"><img src="https://img.shields.io/badge/uvicorn-pink.svg?style=for-the-badge&logo=gunicorn&logoColor=purple" alt="uvicorn" height="26" /></a>
   </p>
 
-This project was done at le Wagon in two weeks, during the Data Science Bootcamp. With this project you can classify by types and names the 151 first pocket monster (A.K.A Pokémon), thanks to a CNN model. But that's not it ! You can also genrate new one thanks to a GAN model.
+This project was done at Le Wagon in two weeks, during the Data Science Bootcamp. With this project you can classify by types and names the 151 first pocket monsters (A.K.A Pokémon), thanks to a CNN model. But that's not it ! You can also generate new ones thanks to a GAN model 🔥
 
 To test the app, go on this website : https://pokemon-generator-1672.streamlit.app/
 
@@ -27,17 +27,17 @@ First let's clone the repository :
 git clone https://github.com/Just-PH/lewagon-pokedex-gan.git
 ```
 
-The run the installation :
+Then run the installation :
 ```
 cd backend
 make start
 ```
-⚠️ Then you need to modify in file /backend/.env the variable WHO with your name ⚠️
+⚠️ Then you need to modify in the file /backend/.env the variable WHO with your name ⚠️
 
 ## Test
 
 Still in /backend
-To test the both predictions function on all images :
+To test both predictions functions on all images :
 ```
 make run_test
 ```
@@ -51,7 +51,7 @@ make run_test_150
 ```
 ## Predictions
 
-⚠️ PUT any images you want to test in the repository all_prediction_images/images ⚠️
+⚠️ PUT any image you want to test in the repository all_prediction_images/images ⚠️
 
 To predict them :
 ```
@@ -78,6 +78,7 @@ You can use this command :
 make run_generate
 ```
 The image will be in the repository named output_gan
+
 ## Api
 To run locally the api :
 ```
